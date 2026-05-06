@@ -26,6 +26,7 @@ def generar():
 
     gen_erp = 'gen_erp' in request.form
     gen_stickers = 'gen_stickers' in request.form
+    tipo_opp = request.form.get('tipo_opp', 'Stock')
 
     if not gen_erp and not gen_stickers:
         flash('Seleccione al menos una opción de generación.', 'warning')
@@ -44,7 +45,7 @@ def generar():
             flash('El archivo Excel no tiene datos.', 'warning')
             return redirect(url_for('index'))
 
-        opp_rows, sticker_rows, errors = generate_opps(rows, estructura)
+        opp_rows, sticker_rows, errors = generate_opps(rows, estructura, tipo_opp)
         token = str(uuid.uuid4())
 
         if gen_erp and opp_rows:
@@ -63,6 +64,7 @@ def generar():
             sticker_rows=sticker_rows,
             errors=errors,
             token=token,
+            tipo_opp=tipo_opp,
             has_erp=gen_erp and bool(opp_rows),
             has_stickers=gen_stickers and bool(sticker_rows),
         )

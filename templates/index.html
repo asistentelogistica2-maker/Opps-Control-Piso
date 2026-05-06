@@ -8,6 +8,45 @@
   <div class="col-lg-7">
     <form method="POST" action="{{ url_for('generar') }}" enctype="multipart/form-data" id="formGenerar">
 
+      <!-- Tipo de OPP -->
+      <div class="card mb-4">
+        <div class="card-header-blue">
+          <i class="bi bi-tag me-2"></i>Tipo de OPP
+        </div>
+        <div class="card-body p-4">
+          <div class="row g-3">
+
+            <div class="col-4">
+              <input type="radio" class="btn-check" name="tipo_opp" id="tipoStock" value="Stock" checked>
+              <label class="btn w-100 tipo-card" for="tipoStock">
+                <i class="bi bi-boxes d-block mb-2" style="font-size:2rem;"></i>
+                <span class="fw-bold d-block">Stock</span>
+                <small class="text-muted">Producción para inventario</small>
+              </label>
+            </div>
+
+            <div class="col-4">
+              <input type="radio" class="btn-check" name="tipo_opp" id="tipoRQ" value="RQ">
+              <label class="btn w-100 tipo-card" for="tipoRQ">
+                <i class="bi bi-clipboard-check d-block mb-2" style="font-size:2rem;"></i>
+                <span class="fw-bold d-block">RQ</span>
+                <small class="text-muted">Requisición de cliente</small>
+              </label>
+            </div>
+
+            <div class="col-4">
+              <input type="radio" class="btn-check" name="tipo_opp" id="tipoSP" value="SP">
+              <label class="btn w-100 tipo-card" for="tipoSP">
+                <i class="bi bi-tools d-block mb-2" style="font-size:2rem;"></i>
+                <span class="fw-bold d-block">SP</span>
+                <small class="text-muted">Servicio / Proyecto</small>
+              </label>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
       <!-- Upload card -->
       <div class="card mb-4">
         <div class="card-header-blue">

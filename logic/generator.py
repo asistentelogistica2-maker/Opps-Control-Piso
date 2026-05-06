@@ -32,7 +32,7 @@ def _next_opp_number():
     return data["last"]
 
 
-def generate_opps(input_rows, estructura):
+def generate_opps(input_rows, estructura, tipo_opp="Stock"):
     """Returns (opp_rows, sticker_rows, errors)."""
     opp_rows = []
     sticker_rows = []
@@ -61,6 +61,7 @@ def generate_opps(input_rows, estructura):
         for proceso in procesos:
             opp_num = _next_opp_number()
             opp_rows.append({
+                "Tipo": tipo_opp,
                 "OPP": opp_num,
                 "Cliente": cliente,
                 "Referencia": ref,

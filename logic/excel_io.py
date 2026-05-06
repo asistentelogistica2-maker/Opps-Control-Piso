@@ -63,7 +63,7 @@ def write_erp_excel(opp_rows, target):
     wb = openpyxl.Workbook()
     ws = wb.active
     ws.title = "OPP ERP"
-    headers = ["OPP", "Cliente", "Referencia", "Proceso", "Cantidad"]
+    headers = ["Tipo", "OPP", "Cliente", "Referencia", "Proceso", "Cantidad"]
     _apply_headers(ws, headers, "1F4E79")
     for r, row in enumerate(opp_rows, 2):
         for col, key in enumerate(headers, 1):
