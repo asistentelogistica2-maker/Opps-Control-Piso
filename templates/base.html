@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Generador OPP{% endblock %}</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <style>
+    :root {
+      --primary:      #1F4E79;
+      --primary-dark: #16395a;
+      --primary-light:#2E75B6;
+      --green:        #375623;
+      --green-light:  #4a7230;
+      --bg:           #eef2f7;
+      --card-shadow:  0 2px 16px rgba(31,78,121,.10);
+    }
+    body { background: var(--bg); font-family: 'Segoe UI', system-ui, sans-serif; min-height: 100vh; }
+
+    /* Navbar */
+    .navbar { background: var(--primary) !important; box-shadow: 0 2px 8px rgba(0,0,0,.25); }
+    .navbar-brand { font-weight: 700; font-size: 1.2rem; letter-spacing: .3px; }
+    .nav-link { color: rgba(255,255,255,.8) !important; font-size: .92rem; }
+    .nav-link:hover, .nav-link.active { color: #fff !important; }
+
+    /* Cards */
+    .card { border: none; border-radius: 14px; box-shadow: var(--card-shadow); }
+    .card-header-blue {
+      background: var(--primary); color: #fff;
+      border-radius: 14px 14px 0 0 !important;
+      padding: .75rem 1.25rem; font-weight: 600; font-size: .95rem;
+    }
+    .card-header-green {
+      background: var(--green); color: #fff;
+      border-radius: 14px 14px 0 0 !important;
+      padding: .75rem 1.25rem; font-weight: 600; font-size: .95rem;
+    }
+
+    /* Upload area */
+    .upload-area {
+      border: 2.5px dashed var(--primary-light);
+      border-radius: 12px; background: #f4f8fd;
+      padding: 2.2rem 1rem; text-align: center; cursor: pointer;
+      transition: background .2s, border-color .2s;
+    }
+    .upload-area:hover, .upload-area.drag-over {
+      background: #dbeafe; border-color: var(--primary);
+    }
+    .upload-area .bi-cloud-upload { font-size: 3rem; color: var(--primary-light); }
+
+    /* Buttons */
+    .btn-primary-custom {
+      background: var(--primary); border: none; color: #fff;
+      font-weight: 700; letter-spacing: .4px;
+      border-radius: 10px; transition: background .2s, transform .1s;
+    }
+    .btn-primary-custom:hover { background: var(--primary-dark); color: #fff; transform: translateY(-1px); }
+    .btn-green { background: var(--green); border: none; color: #fff; font-weight: 600; border-radius: 8px; }
+    .btn-green:hover { background: var(--green-light); color: #fff; }
+
+    /* Generate button */
+    .btn-generate {
+      background: var(--primary); color: #fff; border: none;
+      font-size: 1.15rem; font-weight: 700; letter-spacing: .5px;
+      padding: .85rem 3rem; border-radius: 50px;
+      box-shadow: 0 4px 18px rgba(31,78,121,.35);
+      transition: background .2s, transform .15s, box-shadow .2s;
+    }
+    .btn-generate:hover {
+      background: var(--primary-dark); color: #fff;
+      transform: translateY(-2px); box-shadow: 0 6px 22px rgba(31,78,121,.45);
+    }
+
+    /* Tables */
+    .table-opp thead th { background: var(--primary); color: #fff; font-weight: 600; font-size: .85rem; }
+    .table-stk thead th { background: var(--green);   color: #fff; font-weight: 600; font-size: .85rem; }
+    .table tbody tr:hover { background: #f0f6ff; }
+
+    /* Badge process */
+    .badge-proc {
+      background: #dbeafe; color: var(--primary);
+      font-size: .78rem; font-weight: 600; border-radius: 20px;
+      padding: .25em .65em; margin: 1px;
+    }
+    .badge-last { background: #dcfce7; color: var(--green); }
+
+    /* Footer */
+    footer { font-size: .8rem; color: #94a3b8; text-align: center; padding: 1.5rem 0; }
+  </style>
+  {% block head %}{% endblock %}
+</head>
+<body>
+
+<nav class="navbar navbar-dark navbar-expand-lg">
+  <div class="container">
+    <a class="navbar-brand" href="{{ url_for('index') }}">
+      <i class="bi bi-buildings-fill me-2"></i>Generador de OPP
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="nav">
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item">
+          <a class="nav-link {% if request.endpoint == 'index' %}active{% endif %}" href="{{ url_for('index') }}">
+            <i class="bi bi-house-door me-1"></i>Inicio
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link {% if request.endpoint == 'estructura' %}active{% endif %}" href="{{ url_for('estructura') }}">
+            <i class="bi bi-diagram-3 me-1"></i>Estructura Productiva
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('plantilla') }}">
+            <i class="bi bi-download me-1"></i>Plantilla Excel
+          </a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<div class="container py-4">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, message in messages %}
+      <div class="alert alert-{{ category }} alert-dismissible fade show rounded-3 mb-3" role="alert">
+        <i class="bi bi-{% if category == 'success' %}check-circle{% elif category == 'danger' %}x-circle{% else %}exclamation-triangle{% endif %} me-2"></i>
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+    {% endfor %}
+  {% endwith %}
+
+  {% block content %}{% endblock %}
+</div>
+
+<footer>
+  <i class="bi bi-buildings me-1"></i> Generador de Órdenes de Producción (OPP)
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

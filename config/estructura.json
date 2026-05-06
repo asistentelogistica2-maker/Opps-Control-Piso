@@ -1,0 +1,10 @@
+{
+  "REF001": {
+    "descripcion": "Producto ejemplo 1",
+    "procesos": ["Corte", "Costura", "Terminado", "Empaque"]
+  },
+  "REF002": {
+    "descripcion": "Producto ejemplo 2",
+    "procesos": ["Corte", "Ensamble", "Control de calidad", "Empaque"]
+  }
+}
