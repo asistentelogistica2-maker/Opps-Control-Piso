@@ -22,7 +22,7 @@
       <i class="bi bi-file-earmark-excel me-2"></i>Descargar ERP
     </a>
     {% endif %}
-    {% if has_stickers %}
+    {% if has_stickers and tipo_opp != 'Stock' %}
     <a href="{{ url_for('descargar', token=token, tipo='stickers') }}" class="btn btn-green px-4">
       <i class="bi bi-tags me-2"></i>Descargar Stickers
     </a>
@@ -53,12 +53,14 @@
           <span class="badge ms-1" style="background:var(--ink);color:#fff;">{{ opp_rows | length }}</span>
         </button>
       </li>
+      {% if tipo_opp != 'Stock' %}
       <li class="nav-item">
         <button class="nav-link fw-semibold" data-bs-toggle="tab" data-bs-target="#tabStk" style="color:var(--ink-3)">
           <i class="bi bi-tags me-1"></i>Stickers
           <span class="badge ms-1" style="background:var(--teal);color:#fff;">{{ sticker_rows | length }}</span>
         </button>
       </li>
+      {% endif %}
     </ul>
 
     <div class="tab-content">
@@ -98,20 +100,34 @@
       </div>
 
       <!-- Stickers Tab -->
-      <div class="tab-pane fade p-4" id="tabStk">
+      <div class="tab-pane fade p-3" id="tabStk">
         {% if sticker_rows %}
-        <div class="text-center py-3">
-          <i class="bi bi-tags" style="font-size:2.5rem;color:var(--teal);"></i>
-          <h5 class="mt-3 fw-bold" style="color:var(--ink);">{{ sticker_rows | length }} stickers generados</h5>
-          <p style="color:var(--ink-3);">El archivo está listo para imprimir desde Bartender.</p>
-          {% if has_stickers %}
-          <a href="{{ url_for('descargar', token=token, tipo='stickers') }}" class="btn btn-green px-4 mt-1">
-            <i class="bi bi-download me-2"></i>Descargar Stickers
-          </a>
-          {% endif %}
+        <div class="table-responsive">
+          <table class="table table-stk table-hover table-bordered mb-0 align-middle">
+            <thead>
+              <tr>
+                <th>Cliente</th>
+                <th>N° Documento</th>
+                <th>Medida real</th>
+                <th class="text-center">N° Pieza</th>
+                <th class="text-center">Cantidad</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for row in sticker_rows %}
+              <tr>
+                <td style="color:var(--ink);">{{ row.Cliente }}</td>
+                <td><span class="badge" style="background:var(--surface-2);color:var(--ink);">{{ row['Numero de documento'] }}</span></td>
+                <td style="color:var(--ink);">{{ row['Medida real'] }}</td>
+                <td class="text-center fw-bold" style="color:var(--ink);">{{ row['Numero de pieza'] }}</td>
+                <td class="text-center" style="color:var(--ink);">{{ row.Cantidad }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
         </div>
         {% else %}
-        <div class="text-center text-muted py-4">No se generaron stickers.</div>
+        <div class="text-center py-4" style="color:var(--ink-3);">No se generaron stickers.</div>
         {% endif %}
       </div>
 
@@ -120,9 +136,10 @@
 </div>
 
 <!-- Download reminder -->
-<div class="alert alert-info rounded-3 mt-4 d-flex align-items-center gap-2">
-  <i class="bi bi-info-circle-fill fs-5"></i>
-  <span>Los archivos están listos para descargar. Usa los botones de arriba. Los archivos estarán disponibles mientras no recarges la página.</span>
+<div class="mt-3 px-3 py-2 rounded-3 d-flex align-items-center gap-2"
+     style="background:var(--surface-2);border:1px solid var(--line);color:var(--ink-3);font-size:.85rem;">
+  <i class="bi bi-info-circle" style="color:var(--ink-4);font-size:1rem;flex-shrink:0;"></i>
+  <span>Los archivos estarán disponibles mientras no recarges la página.</span>
 </div>
 
 {% endblock %}
