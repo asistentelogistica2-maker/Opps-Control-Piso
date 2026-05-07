@@ -14,7 +14,7 @@ _cache = {}
 
 @app.route('/')
 def index():
-    return render_template('index.html', estructura=load_estructura())
+    return render_template('index.html')
 
 
 @app.route('/generar', methods=['POST'])

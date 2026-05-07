@@ -60,15 +60,53 @@ def _auto_width(ws):
 
 
 def write_erp_excel(opp_rows, target):
+    from datetime import date
+    today = date.today().strftime("%Y%m%d")
+
     wb = openpyxl.Workbook()
-    ws = wb.active
-    ws.title = "OPP ERP"
-    headers = ["Tipo", "OPP", "Cliente", "Referencia", "Proceso", "Cantidad"]
-    _apply_headers(ws, headers, "1F4E79")
+
+    # --- Hoja Documentos ---
+    ws_doc = wb.active
+    ws_doc.title = "Documentos"
+    doc_headers = [
+        "CONSECUTIVO DCTO", "FECHA AAAAMMDD", "PLANIFICADOR",
+        "REF1", "REF2", "REF3", "NOTAS",
+    ]
+    _apply_headers(ws_doc, doc_headers, "1F4E79")
     for r, row in enumerate(opp_rows, 2):
-        for col, key in enumerate(headers, 1):
-            ws.cell(row=r, column=col, value=row[key])
-    _auto_width(ws)
+        ws_doc.cell(row=r, column=1, value=row["OPP"])
+        ws_doc.cell(row=r, column=2, value=today)
+        ws_doc.cell(row=r, column=3, value="")           # PLANIFICADOR — pendiente
+        ws_doc.cell(row=r, column=4, value=row["Cliente"])  # REF1
+        ws_doc.cell(row=r, column=5, value="")           # REF2 — pendiente
+        ws_doc.cell(row=r, column=6, value="")           # REF3 — pendiente
+        ws_doc.cell(row=r, column=7, value=row["notas_generales"])
+    _auto_width(ws_doc)
+
+    # --- Hoja Items ---
+    ws_items = wb.create_sheet("Items")
+    item_headers = [
+        "NUMERO DCTO", "REGISTRO MVTO", "REFERENCIA", "EXT1", "EXT2",
+        "U.M", "CANT PLANEADA", "FECHA INICIO AAAAMMDD", "FECHA TERMINACION AAAAMMDD",
+        "METODO LISTA", "METODO RUTA", "MEDIDA REAL", "BODEGA",
+    ]
+    _apply_headers(ws_items, item_headers, "1F4E79")
+    for r, row in enumerate(opp_rows, 2):
+        ws_items.cell(row=r, column=1,  value=row["OPP"])
+        ws_items.cell(row=r, column=2,  value="")             # REGISTRO MVTO — pendiente
+        ws_items.cell(row=r, column=3,  value=row["Referencia"])
+        ws_items.cell(row=r, column=4,  value="")             # EXT1 — pendiente
+        ws_items.cell(row=r, column=5,  value="")             # EXT2 — pendiente
+        ws_items.cell(row=r, column=6,  value="")             # U.M — pendiente
+        ws_items.cell(row=r, column=7,  value=row["Cantidad"])
+        ws_items.cell(row=r, column=8,  value="")             # FECHA INICIO — pendiente
+        ws_items.cell(row=r, column=9,  value="")             # FECHA TERMINACION — pendiente
+        ws_items.cell(row=r, column=10, value="")             # METODO LISTA — pendiente
+        ws_items.cell(row=r, column=11, value=row["Proceso"]) # METODO RUTA
+        ws_items.cell(row=r, column=12, value=row["notas_item"])  # MEDIDA REAL
+        ws_items.cell(row=r, column=13, value="")             # BODEGA — pendiente
+    _auto_width(ws_items)
+
     wb.save(target)
 
 

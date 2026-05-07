@@ -58,6 +58,8 @@ def generate_opps(input_rows, estructura, tipo_opp="Stock"):
 
         last_proceso = procesos[-1]
 
+        notas_generales = str(row.get("notas_generales", "") or "")
+
         for proceso in procesos:
             opp_num = _next_opp_number()
             opp_rows.append({
@@ -67,6 +69,8 @@ def generate_opps(input_rows, estructura, tipo_opp="Stock"):
                 "Referencia": ref,
                 "Proceso": proceso,
                 "Cantidad": cantidad,
+                "notas_item": notas_item,
+                "notas_generales": notas_generales,
             })
 
             if proceso == last_proceso:
