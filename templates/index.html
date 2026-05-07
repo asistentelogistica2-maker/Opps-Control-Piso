@@ -1,58 +1,65 @@
 {% extends "base.html" %}
 {% block title %}Generador OPP — Inicio{% endblock %}
+{% block page_label %}Generador de OPP{% endblock %}
 
 {% block content %}
 <div class="row g-4 justify-content-center">
 
   <!-- Form -->
-  <div class="col-lg-8">
+  <div class="col-lg-10">
     <form method="POST" action="{{ url_for('generar') }}" enctype="multipart/form-data" id="formGenerar">
 
       <!-- Tipo de OPP -->
-      <div class="card mb-4">
+      <div class="card mb-3">
         <div class="card-header-blue">
           <i class="bi bi-tag me-2"></i>Tipo de OPP
         </div>
-        <div class="card-body p-4">
-          <div class="row g-3">
+        <div class="card-body p-3">
+          <div class="row g-3 justify-content-center">
 
-            <div class="col-4">
+            <div class="col-3">
               <input type="radio" class="btn-check" name="tipo_opp" id="tipoStock" value="Stock" checked>
               <label class="btn w-100 tipo-card" for="tipoStock">
-                <i class="bi bi-boxes d-block mb-2" style="font-size:2rem;"></i>
-                <span class="fw-bold d-block">Stock</span>
-                <small class="text-muted">Producción para inventario</small>
+                <i class="bi bi-boxes d-block mb-1" style="font-size:1.5rem;"></i>
+                <span class="fw-bold d-block" style="font-size:.9rem;">Stock</span>
               </label>
             </div>
 
-            <div class="col-4">
+            <div class="col-3">
               <input type="radio" class="btn-check" name="tipo_opp" id="tipoRQ" value="RQ">
               <label class="btn w-100 tipo-card" for="tipoRQ">
-                <i class="bi bi-clipboard-check d-block mb-2" style="font-size:2rem;"></i>
-                <span class="fw-bold d-block">RQ</span>
-                <small class="text-muted">Requisición de cliente</small>
+                <i class="bi bi-clipboard-check d-block mb-1" style="font-size:1.5rem;"></i>
+                <span class="fw-bold d-block" style="font-size:.9rem;">RQ</span>
               </label>
             </div>
 
-            <div class="col-4">
+            <div class="col-3">
               <input type="radio" class="btn-check" name="tipo_opp" id="tipoSP" value="SP">
               <label class="btn w-100 tipo-card" for="tipoSP">
-                <i class="bi bi-tools d-block mb-2" style="font-size:2rem;"></i>
-                <span class="fw-bold d-block">SP</span>
-                <small class="text-muted">Servicio / Proyecto</small>
+                <i class="bi bi-tools d-block mb-1" style="font-size:1.5rem;"></i>
+                <span class="fw-bold d-block" style="font-size:.9rem;">SP</span>
               </label>
             </div>
 
+          </div>
+          <div class="mt-3 pt-3 border-top d-flex align-items-center justify-content-between"
+               style="border-color:var(--line) !important;">
+            <small style="color:var(--ink-3);">
+              <i class="bi bi-info-circle me-1"></i>La plantilla corresponde al tipo de OPP seleccionado
+            </small>
+            <a href="{{ url_for('plantilla') }}" class="btn btn-sm btn-plantilla">
+              <i class="bi bi-download me-1"></i>Descargar plantilla
+            </a>
           </div>
         </div>
       </div>
 
       <!-- Upload card -->
-      <div class="card mb-4">
+      <div class="card mb-3">
         <div class="card-header-blue">
           <i class="bi bi-file-earmark-arrow-up me-2"></i>Archivo de entrada
         </div>
-        <div class="card-body p-4">
+        <div class="card-body p-3">
           <div class="upload-area" id="uploadArea" onclick="document.getElementById('archivo').click()">
             <i class="bi bi-cloud-upload d-block mb-2"></i>
             <p class="fw-semibold mb-1" id="uploadText">Arrastra tu Excel aquí o haz clic para seleccionar</p>
@@ -71,19 +78,18 @@
       </div>
 
       <!-- Options card -->
-      <div class="card mb-4">
+      <div class="card mb-3">
         <div class="card-header-blue">
           <i class="bi bi-sliders me-2"></i>Opciones de generación
         </div>
-        <div class="card-body p-4">
-          <div class="row g-3">
-            <div class="col-md-6">
-              <label for="gen_erp" class="d-flex align-items-center justify-content-between p-3 rounded-3 cursor-pointer"
-                style="background:var(--surface); border:1.5px solid var(--line); cursor:pointer;">
+        <div class="card-body p-3">
+          <div class="row gx-4 gy-3 justify-content-center">
+            <div class="col-md-4">
+              <label for="gen_erp" class="gen-option d-flex align-items-center justify-content-between p-2">
                 <div class="d-flex align-items-center gap-2">
                   <i class="bi bi-file-earmark-spreadsheet fs-5" style="color:var(--navy)"></i>
                   <div>
-                    <div class="fw-600" style="font-weight:600;color:var(--ink);">Excel para ERP</div>
+                    <div style="font-weight:600;color:var(--ink);">Excel para ERP</div>
                     <small style="color:var(--ink-3);">Generic / Siesa</small>
                   </div>
                 </div>
@@ -93,14 +99,13 @@
                 </div>
               </label>
             </div>
-            <div class="col-md-6">
-              <label for="gen_stickers" class="d-flex align-items-center justify-content-between p-3 rounded-3"
-                style="background:var(--surface); border:1.5px solid var(--line); cursor:pointer;">
+            <div class="col-md-4">
+              <label for="gen_stickers" id="labelStickers" class="gen-option d-flex align-items-center justify-content-between p-2">
                 <div class="d-flex align-items-center gap-2">
-                  <i class="bi bi-tags fs-5" style="color:var(--teal)"></i>
+                  <i class="bi bi-tags fs-5" id="iconStickers" style="color:var(--teal)"></i>
                   <div>
-                    <div class="fw-600" style="font-weight:600;color:var(--ink);">Excel para Stickers</div>
-                    <small style="color:var(--ink-3);">Impresión (Bartender)</small>
+                    <div id="titleStickers" style="font-weight:600;color:var(--ink);">Excel para Stickers</div>
+                    <small id="subStickers" style="color:var(--ink-3);">Impresión (Bartender)</small>
                   </div>
                 </div>
                 <div class="form-check form-switch mb-0 ps-0">
@@ -108,13 +113,21 @@
                     style="width:2.5em;height:1.4em;cursor:pointer;">
                 </div>
               </label>
+              <!-- Aviso Stock -->
+              <div id="avisoStickers" class="d-none mt-1 px-1">
+                <small style="color:var(--ink-3);">
+                  <i class="bi bi-folder2 me-1" style="color:var(--yellow-mid)"></i>
+                  Stickers disponibles en Drive
+                  <!-- <a href="LINK_DRIVE_AQUI" target="_blank" style="color:var(--yellow-mid);">Abrir carpeta</a> -->
+                </small>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
       <!-- Generate button -->
-      <div class="text-center mt-2">
+      <div class="text-center mt-1">
         <button type="submit" id="btnGenerar" class="btn btn-generate">
           <i class="bi bi-lightning-charge-fill me-2"></i>GENERAR OPP
         </button>
@@ -151,6 +164,24 @@
     text.textContent = 'Archivo listo para procesar';
     document.getElementById('archivoError').classList.add('d-none');
   }
+
+  // Stickers: deshabilitar si Stock
+  const tipoRadios = document.querySelectorAll('input[name="tipo_opp"]');
+  const chkStickers = document.getElementById('gen_stickers');
+  const labelStickers = document.getElementById('labelStickers');
+  const avisoStickers = document.getElementById('avisoStickers');
+
+  function actualizarStickers() {
+    const esStock = document.querySelector('input[name="tipo_opp"]:checked').value === 'Stock';
+    chkStickers.checked = !esStock;
+    chkStickers.disabled = esStock;
+    labelStickers.style.opacity = esStock ? '.45' : '1';
+    labelStickers.style.cursor = esStock ? 'not-allowed' : 'pointer';
+    avisoStickers.classList.toggle('d-none', !esStock);
+  }
+
+  tipoRadios.forEach(r => r.addEventListener('change', actualizarStickers));
+  actualizarStickers(); // ejecutar al cargar
 
   // Validar antes de enviar
   document.getElementById('formGenerar').addEventListener('submit', function(e) {
