@@ -123,6 +123,45 @@ def write_sticker_excel(sticker_rows, target):
     wb.save(target)
 
 
+def create_estructura_template(target):
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Estructura"
+    headers = ["Referencia", "Descripción", "Proceso 1", "Proceso 2", "Proceso 3",
+               "Proceso 4", "Proceso 5", "Proceso 6", "Proceso 7", "Proceso 8"]
+    _apply_headers(ws, headers, "2E75B6")
+    sample_rows = [
+        ["REF001", "Puerta Principal Madera", "Corte", "Lijado", "Pintura", "Terminado", "Empaque", "", "", ""],
+        ["REF002", "Marco Metálico", "Corte Metal", "Soldadura", "Pintura", "Empaque", "", "", "", ""],
+        ["REF003", "Panel Decorativo", "Corte", "Ensamble", "Lacado", "Control Calidad", "Empaque", "", "", ""],
+    ]
+    for r, row in enumerate(sample_rows, 2):
+        for col, val in enumerate(row, 1):
+            ws.cell(row=r, column=col, value=val)
+    col_widths = [15, 28, 18, 18, 18, 18, 18, 18, 18, 18]
+    for i, w in enumerate(col_widths, 1):
+        ws.column_dimensions[openpyxl.utils.get_column_letter(i)].width = w
+    wb.save(target)
+
+
+def read_estructura_excel(filepath):
+    wb = openpyxl.load_workbook(filepath, data_only=True)
+    ws = wb.active
+    referencias = {}
+    errors = []
+    for row_idx, row in enumerate(ws.iter_rows(min_row=2, values_only=True), 2):
+        ref = str(row[0]).strip() if row[0] else ""
+        if not ref or ref.lower() == "none":
+            continue
+        descripcion = str(row[1]).strip() if row[1] else ""
+        procesos = [str(v).strip() for v in row[2:] if v and str(v).strip()]
+        if not procesos:
+            errors.append(f"Fila {row_idx}: '{ref}' no tiene procesos definidos — omitida.")
+            continue
+        referencias[ref] = {"descripcion": descripcion, "procesos": procesos}
+    return referencias, errors
+
+
 def create_input_template(target):
     wb = openpyxl.Workbook()
     ws = wb.active

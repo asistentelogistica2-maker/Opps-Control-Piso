@@ -6,14 +6,61 @@
 
 <div class="d-flex align-items-center justify-content-between mb-4">
   <div>
-    <h4 class="fw-bold mb-1" style="color:var(--primary)">
+    <h4 class="fw-bold mb-1" style="color:var(--navy)">
       <i class="bi bi-diagram-3 me-2"></i>Estructura Productiva
     </h4>
     <p class="text-muted mb-0">Define las referencias y su secuencia de procesos de producción.</p>
   </div>
-  <button class="btn btn-primary-custom px-4" data-bs-toggle="modal" data-bs-target="#modalRef" onclick="clearModal()">
-    <i class="bi bi-plus-lg me-1"></i>Nueva referencia
-  </button>
+  <div class="d-flex gap-2">
+    <button class="btn btn-outline-secondary px-3" data-bs-toggle="collapse" data-bs-target="#panelImportar">
+      <i class="bi bi-upload me-1"></i>Carga masiva
+    </button>
+    <button class="btn btn-primary-custom px-4" data-bs-toggle="modal" data-bs-target="#modalRef" onclick="clearModal()">
+      <i class="bi bi-plus-lg me-1"></i>Nueva referencia
+    </button>
+  </div>
+</div>
+
+<!-- Panel carga masiva -->
+<div class="collapse mb-4" id="panelImportar">
+  <div class="card border-0 shadow-sm">
+    <div class="card-header d-flex align-items-center justify-content-between py-3 px-4"
+         style="background:var(--surface-2);border-bottom:1px solid var(--line);">
+      <span class="fw-semibold" style="color:var(--ink);">
+        <i class="bi bi-file-earmark-spreadsheet me-2" style="color:var(--navy)"></i>Importar desde Excel
+      </span>
+      <a href="{{ url_for('plantilla_estructura') }}" class="btn btn-sm btn-outline-primary">
+        <i class="bi bi-download me-1"></i>Descargar plantilla
+      </a>
+    </div>
+    <div class="card-body p-4">
+      <form method="POST" action="{{ url_for('importar_estructura') }}" enctype="multipart/form-data">
+        <div class="row g-3 align-items-end">
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Archivo Excel</label>
+            <input type="file" name="archivo_masivo" class="form-control" accept=".xlsx,.xls" required>
+            <div class="form-text">Usa la plantilla para asegurarte del formato correcto.</div>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-semibold">Modo de importación</label>
+            <select name="modo_importar" class="form-select">
+              <option value="merge">Agregar / actualizar (conserva existentes)</option>
+              <option value="reemplazar">Reemplazar todo (borra las actuales)</option>
+            </select>
+          </div>
+          <div class="col-md-2">
+            <button type="submit" class="btn btn-primary-custom w-100">
+              <i class="bi bi-upload me-1"></i>Importar
+            </button>
+          </div>
+        </div>
+      </form>
+      <div class="mt-3 p-3 rounded-3" style="background:var(--bg);border:1px solid var(--line);font-size:.83rem;color:var(--ink-2);">
+        <strong>Formato del Excel:</strong> columna A = Referencia · columna B = Descripción · columnas C en adelante = Proceso 1, Proceso 2… (hasta 8 procesos).<br>
+        El <strong>último proceso</strong> de cada fila es el que genera los stickers.
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- Persistence note -->
@@ -42,7 +89,7 @@
           {% for ref, data in estructura.items() %}
           <tr>
             <td class="ps-4 py-3">
-              <span class="badge rounded-pill fs-6 px-3" style="background:var(--primary)">{{ ref }}</span>
+              <span class="badge rounded-pill fs-6 px-3" style="background:var(--navy)">{{ ref }}</span>
             </td>
             <td class="py-3">{{ data.descripcion or '—' }}</td>
             <td class="py-3">
@@ -95,7 +142,7 @@
   <div class="modal-dialog modal-lg">
     <div class="modal-content rounded-4">
       <form method="POST" action="{{ url_for('guardar_estructura') }}">
-        <div class="modal-header" style="background:var(--primary);color:#fff;border-radius:16px 16px 0 0;">
+        <div class="modal-header" style="background:var(--navy);color:#fff;border-radius:16px 16px 0 0;">
           <h5 class="modal-title fw-bold"><i class="bi bi-diagram-3 me-2"></i><span id="modalTitle">Nueva referencia</span></h5>
           <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
         </div>

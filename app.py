@@ -1,9 +1,11 @@
 import os
 import io
 import uuid
+import tempfile
 from flask import Flask, render_template, request, send_file, redirect, url_for, flash
 from logic.generator import load_estructura, save_estructura, generate_opps
-from logic.excel_io import read_input_excel, write_erp_excel, write_sticker_excel, create_input_template
+from logic.excel_io import read_input_excel, write_erp_excel, create_input_template, create_estructura_template, read_estructura_excel
+from generate_stickers_pdf import export_stickers_from_orders
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'dev-secret-key')
@@ -54,9 +56,23 @@ def generar():
             _cache[f"{token}_erp"] = buf.getvalue()
 
         if gen_stickers and sticker_rows:
-            buf = io.BytesIO()
-            write_sticker_excel(sticker_rows, buf)
-            _cache[f"{token}_stickers"] = buf.getvalue()
+            # Convertir formato sticker_rows a formato para PDF
+            stickers_data = [
+                {
+                    'cliente': row['Cliente'],
+                    'doc': str(row['Numero de documento']),
+                    'medida': row['Medida real'],
+                    'pieza': row['Numero de pieza'],
+                }
+                for row in sticker_rows
+            ]
+            # Generar PDF en lugar de Excel
+            with tempfile.NamedTemporaryFile(mode='wb', delete=False, suffix='.pdf') as tmp:
+                temp_pdf = tmp.name
+            export_stickers_from_orders(stickers_data, temp_pdf)
+            with open(temp_pdf, 'rb') as f:
+                _cache[f"{token}_stickers"] = f.read()
+            os.remove(temp_pdf)
 
         return render_template(
             'resultados.html',
@@ -80,12 +96,19 @@ def descargar(token, tipo):
     if not data:
         flash('Archivo no disponible. Vuelva a generar.', 'warning')
         return redirect(url_for('index'))
-    filename = 'OPP_ERP.xlsx' if tipo == 'erp' else 'OPP_Stickers.xlsx'
+    
+    if tipo == 'erp':
+        filename = 'OPP_ERP.xlsx'
+        mimetype = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    else:  # stickers
+        filename = 'stickers.pdf'
+        mimetype = 'application/pdf'
+    
     return send_file(
         io.BytesIO(data),
         download_name=filename,
         as_attachment=True,
-        mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        mimetype=mimetype,
     )
 
 
@@ -125,6 +148,54 @@ def guardar_estructura():
     data[ref] = {'descripcion': descripcion, 'procesos': procesos}
     save_estructura(data)
     flash(f"Referencia '{ref}' guardada correctamente.", 'success')
+    return redirect(url_for('estructura'))
+
+
+@app.route('/estructura/plantilla-masiva')
+def plantilla_estructura():
+    buf = io.BytesIO()
+    create_estructura_template(buf)
+    buf.seek(0)
+    return send_file(
+        buf,
+        download_name='plantilla_estructura_productiva.xlsx',
+        as_attachment=True,
+        mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    )
+
+
+@app.route('/estructura/importar', methods=['POST'])
+def importar_estructura():
+    archivo = request.files.get('archivo_masivo')
+    if not archivo or archivo.filename == '':
+        flash('Seleccione un archivo Excel para importar.', 'warning')
+        return redirect(url_for('estructura'))
+
+    modo = request.form.get('modo_importar', 'merge')
+
+    try:
+        stream = io.BytesIO(archivo.read())
+        nuevas, errors = read_estructura_excel(stream)
+
+        if not nuevas:
+            flash('El archivo no contiene referencias válidas.', 'warning')
+            return redirect(url_for('estructura'))
+
+        data = {} if modo == 'reemplazar' else load_estructura()
+        data.update(nuevas)
+        save_estructura(data)
+
+        msg = f'{len(nuevas)} referencia(s) importada(s) correctamente.'
+        if errors:
+            msg += f' {len(errors)} fila(s) omitida(s) por errores.'
+        flash(msg, 'success')
+
+        for e in errors:
+            flash(e, 'warning')
+
+    except Exception as exc:
+        flash(f'Error al leer el archivo: {exc}', 'danger')
+
     return redirect(url_for('estructura'))
 
 

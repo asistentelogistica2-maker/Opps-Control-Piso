@@ -1,10 +1,28 @@
 {
   "REF001": {
     "descripcion": "Producto ejemplo 1",
-    "procesos": ["Corte", "Costura", "Terminado", "Empaque"]
+    "procesos": [
+      "Corte",
+      "Costura",
+      "Terminado",
+      "Empaque"
+    ]
   },
   "REF002": {
     "descripcion": "Producto ejemplo 2",
-    "procesos": ["Corte", "Ensamble", "Control de calidad", "Empaque"]
+    "procesos": [
+      "Corte",
+      "Ensamble",
+      "Control de calidad",
+      "Empaque"
+    ]
+  },
+  "PUDT0260": {
+    "descripcion": "PUERTA DEKO 65x200 cm",
+    "procesos": [
+      "Corte",
+      "Detallado",
+      "Empaque"
+    ]
   }
 }

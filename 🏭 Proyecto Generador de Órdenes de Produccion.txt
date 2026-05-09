@@ -1,0 +1,177 @@
+# 🏭 Proyecto: Generador de Órdenes de Producción (OPP)
+
+## 🎯 Objetivo
+
+Desarrollar una aplicación local en Python que permita automatizar la generación de Órdenes de Producción (OPP) a partir de un archivo Excel de entrada, generando como salida dos archivos Excel:
+
+1. 📄 Excel para carga en ERP (Generic / Siesa)
+2. 🏷️ Excel para impresión de stickers de producción
+
+---
+
+## 📥 Entrada del sistema (Excel)
+
+El archivo de entrada debe contener únicamente:
+
+* Cliente
+* Referencia
+* Cantidad
+* Notas del ítem (ej: medidas especiales, acabados, observaciones)
+* Notas generales (opcional, aplican a todo el pedido)
+
+---
+
+## 🧠 Lógica del sistema
+
+El sistema funciona bajo el concepto de **estructura productiva**:
+
+* Cada referencia tiene múltiples procesos (ruta de producción)
+* Cada proceso genera una OPP
+* Las OPP se generan automáticamente según la secuencia definida
+
+### Flujo lógico:
+
+1. Validar archivo de entrada
+2. Identificar procesos por referencia
+3. Generar OPP por cada proceso
+
+---
+
+## ⚠️ Regla importante (stickers)
+
+* ❗ No todos los procesos generan stickers
+* ✅ Los stickers se generan SOLO con base en la **última OPP** (último proceso que entra a inventario)
+* ✅ La cantidad de stickers = cantidad de ítems ingresados
+
+---
+
+## 📄 Salida 1: Excel para ERP (Generic)
+
+Contiene todas las OPP generadas:
+
+* OPP
+* Cliente
+* Referencia
+* Proceso
+* Cantidad
+
+👉 Este archivo se usa para:
+
+* Validación en Generic (Siesa)
+* Posterior carga al ERP
+
+---
+
+## 🏷️ Salida 2: Excel para Stickers
+
+Archivo simple para impresión posterior en otra herramienta (ej: Bartender)
+
+Contiene:
+
+* Cliente
+* Número de documento
+* Medida real (en cm)
+* Número de pieza (ej: 1/5, 2/5...)
+* Cantidad
+
+### 📏 Formato del sticker:
+
+* 2.5 cm de alto
+* 10 cm de largo
+
+👉 Nota:
+
+* El sistema NO genera el diseño gráfico del sticker
+* Solo genera el Excel que será usado en la herramienta de impresión
+
+---
+
+## 🖥️ Tipo de aplicación
+
+Aplicación local en Python con interfaz gráfica.
+
+### Tecnología recomendada:
+
+* Python
+* PyQt para la interfaz
+
+---
+
+## 🎨 Diseño del sistema (UX)
+
+Pantalla única con:
+
+* Carga de archivo Excel
+* Opciones de generación
+* Ruta de guardado
+* Botón principal: **GENERAR OPP**
+
+---
+
+## 📊 Vista previa
+
+* Nombre: **Vista previa de resultados**
+* Se muestra SOLO después de ejecutar el proceso
+* Incluye:
+
+  * Tabla de OPP generadas
+  * Tabla de datos para stickers (no diseño gráfico)
+
+---
+
+## 🔄 Flujo de uso
+
+1. Usuario carga Excel
+2. Selecciona carpeta destino
+3. Hace clic en **GENERAR OPP**
+4. El sistema procesa
+5. Genera:
+
+   * Excel ERP
+   * Excel Stickers
+6. Muestra vista previa de resultados
+
+---
+
+## 🚀 Escalabilidad futura
+
+El sistema puede evolucionar a:
+
+* Aplicación web usando Python
+
+  * Flask
+  * FastAPI
+
+### Importante:
+
+* La lógica en Python se reutiliza
+* Solo cambia la interfaz (de PyQt a web)
+
+---
+
+## 🧠 Concepto clave del proyecto
+
+Este sistema es un:
+
+👉 **Motor de generación de OPP basado en estructura productiva (tipo MRP básico)**
+
+---
+
+## 🎯 Beneficios
+
+* Reducción de errores manuales
+* Ahorro de tiempo operativo
+* Estandarización del proceso
+* Integración con ERP
+* Mejora en trazabilidad en planta
+
+---
+
+## 📌 Estado actual del diseño
+
+* Flujo definido ✔
+* Reglas de negocio claras ✔
+* Diseño de interfaz definido ✔
+* Listo para desarrollo en Python ✔
+
+---
