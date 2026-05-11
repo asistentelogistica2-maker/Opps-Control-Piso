@@ -89,6 +89,17 @@ def generate_opps(input_rows, estructura, tipo_opp="Stock"):
     return opp_rows, sticker_rows, errors
 
 
+def load_referencias_stock():
+    if _use_firebase():
+        raw = _fdb.load_referencias()
+        lookup = {}
+        for fb_key, data in raw.items():
+            ref, color = fb_key.split('|', 1)
+            lookup[(ref.upper(), color.upper())] = data
+        return lookup
+    return {}
+
+
 def generate_opps_stock(input_rows, referencias_lookup):
     opp_list = []
     errors = []

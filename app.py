@@ -2,10 +2,11 @@ import os
 import io
 import uuid
 from flask import Flask, render_template, request, send_file, redirect, url_for, flash
-from logic.generator import load_estructura, save_estructura, generate_opps_stock
+from logic.generator import load_estructura, save_estructura, generate_opps_stock, load_referencias_stock
 from logic.excel_io import (
     read_input_excel, create_input_template, write_jumbo_excel,
-    load_referencias_stock, create_estructura_template, read_estructura_excel,
+    create_estructura_template, read_estructura_excel,
+    create_referencias_template, read_referencias_excel,
 )
 
 app = Flask(__name__)
@@ -117,9 +118,57 @@ def plantilla():
     )
 
 
+@app.route('/referencias/plantilla')
+def plantilla_referencias():
+    buf = io.BytesIO()
+    create_referencias_template(buf)
+    buf.seek(0)
+    return send_file(
+        buf,
+        download_name='plantilla_referencias.xlsx',
+        as_attachment=True,
+        mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    )
+
+
+@app.route('/referencias/importar', methods=['POST'])
+def importar_referencias():
+    from logic.firebase_db import save_referencias
+    archivo = request.files.get('archivo_referencias')
+    if not archivo or archivo.filename == '':
+        flash('Seleccione un archivo Excel para importar.', 'warning')
+        return redirect(url_for('estructura'))
+
+    modo = request.form.get('modo_referencias', 'merge')
+
+    try:
+        stream = io.BytesIO(archivo.read())
+        nuevas, errors = read_referencias_excel(stream)
+
+        if not nuevas:
+            flash('El archivo no contiene referencias válidas.', 'warning')
+            return redirect(url_for('estructura'))
+
+        save_referencias(nuevas, modo)
+        global _referencias_stock
+        _referencias_stock = None
+
+        msg = f'{len(nuevas)} referencia(s) importada(s) correctamente.'
+        if errors:
+            msg += f' {len(errors)} fila(s) omitida(s).'
+        flash(msg, 'success')
+
+    except Exception as exc:
+        flash(f'Error al leer el archivo: {exc}', 'danger')
+
+    return redirect(url_for('estructura'))
+
+
 @app.route('/estructura')
 def estructura():
-    return render_template('estructura.html', estructura=load_estructura())
+    from logic.firebase_db import load_referencias, is_available
+    referencias = load_referencias() if is_available() else {}
+    return render_template('estructura.html', estructura=load_estructura(), referencias=referencias)
 
 
 @app.route('/estructura/guardar', methods=['POST'])

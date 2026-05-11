@@ -35,46 +35,65 @@ def read_input_excel(filepath):
     return rows
 
 
-def load_referencias_stock():
-    path = Path(__file__).parent.parent / "Referencias Stock.xlsx"
-    if not path.exists():
-        return {}
-
-    wb = openpyxl.load_workbook(path, data_only=True)
+def read_referencias_excel(filepath):
+    """Lee el template unificado de referencias (14 cols) y retorna dict para Firebase."""
+    wb = openpyxl.load_workbook(filepath, data_only=True)
     ws = wb.active
-
-    lookup = {}
-    for row in ws.iter_rows(min_row=2, values_only=True):
-        ref_a = str(row[0]).strip() if row[0] else ""   # A: Referencia
-        ref_b = str(row[1]).strip() if row[1] else ""   # B: Referenciaprd
-        color = str(row[3]).strip() if row[3] else ""   # D: Color
-        color_num = row[4]                               # E: Color #
-        medida = str(row[5]).strip() if row[5] else ""  # F: Medida
-        um = str(row[6]).strip() if row[6] else ""      # G: Unidad de medida
-        ref1 = str(row[7]).strip() if row[7] else ""    # H: Ref 1
-        ref2_i = str(row[8]).strip() if row[8] else ""  # I: Ref 2 (proceso OPP2)
-        ref2_j = str(row[9]).strip() if row[9] else ""  # J: Ref 2 (valor REF2)
-        notas1 = str(row[10]).strip() if row[10] else ""  # K: Notas Ref 1
-        notas2 = str(row[11]).strip() if row[11] else ""  # L: Notas Ref 2
-
+    referencias = {}
+    errors = []
+    for row_idx, row in enumerate(ws.iter_rows(min_row=2, values_only=True), 2):
+        ref_a = str(row[0]).strip() if row[0] else ""
+        color = str(row[3]).strip() if row[3] else ""
         if not ref_a or not color:
             continue
-
-        key = (ref_a.upper(), color.upper())
-        lookup[key] = {
+        fb_key = f"{ref_a}|{color}"
+        referencias[fb_key] = {
             "referencia_a": ref_a,
-            "referencia_b": ref_b,
-            "color_num": color_num,
-            "medida": medida,
-            "um": um,
-            "ref1": ref1,
-            "ref2_i": ref2_i,
-            "ref2_j": ref2_j,
-            "notas1": notas1,
-            "notas2": notas2,
+            "referencia_b": str(row[1]).strip() if row[1] else "",
+            "descripcion":  str(row[2]).strip() if row[2] else "",
+            "color":        color,
+            "color_num":    row[4],
+            "medida":       str(row[5]).strip() if row[5] else "",
+            "um":           str(row[6]).strip() if row[6] else "",
+            "ref1":         str(row[7]).strip() if row[7] else "",
+            "ref2_i":       str(row[9]).strip() if row[9] else "",
+            "ref2_j":       str(row[11]).strip() if row[11] else "",
+            "notas1":       str(row[12]).strip() if row[12] else "",
+            "notas2":       str(row[13]).strip() if row[13] else "",
         }
+    return referencias, errors
 
-    return lookup
+
+def create_referencias_template(target):
+    """Crea el template unificado de referencias con 14 columnas."""
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Referencias"
+    headers = [
+        "Referencia", "Referencia PRD", "Descripción", "Color", "Color #",
+        "Medida", "U.M",
+        "Proceso 1", "Nombre Proceso 1",
+        "Proceso 2", "Nombre Proceso 2",
+        "REF2", "Notas Proceso 1", "Notas Proceso 2",
+    ]
+    _apply_headers(ws, headers, "1F4E79")
+    sample = [
+        ["PUDT0260", "PUDC0260", "PUERTA DEKO 60x200 cm", "CEDRO SIL", 284,
+         "STD", "UNI", "A", "Arborit", "E", "Empaque", "STOCK",
+         "TODAS VAN A 2 MTS DE ALTURA, PASAR A EMPAQUE",
+         "TODAS VAN A 2 MTS DE ALTURA, PASAR A CEDI"],
+        ["PUDT0260", "PUDC0260", "PUERTA DEKO 60x200 cm", "WENGUE CL", 285,
+         "STD", "UNI", "A", "Arborit", "E", "Empaque", "STOCK",
+         "TODAS VAN A 2 MTS DE ALTURA, PASAR A EMPAQUE",
+         "TODAS VAN A 2 MTS DE ALTURA, PASAR A CEDI"],
+    ]
+    for r, row in enumerate(sample, 2):
+        for col, val in enumerate(row, 1):
+            ws.cell(row=r, column=col, value=val)
+    col_widths = [14, 14, 28, 14, 10, 10, 8, 12, 18, 12, 18, 10, 35, 35]
+    for i, w in enumerate(col_widths, 1):
+        ws.column_dimensions[openpyxl.utils.get_column_letter(i)].width = w
+    wb.save(target)
 
 
 def _apply_headers(ws, headers, fill_color):

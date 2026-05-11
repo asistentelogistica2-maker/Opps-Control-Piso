@@ -4,12 +4,124 @@
 
 {% block content %}
 
-<div class="d-flex align-items-center justify-content-between mb-4">
+<!-- ── SECCIÓN REFERENCIAS UNIFICADAS ── -->
+<div class="d-flex align-items-center justify-content-between mb-3">
+  <div>
+    <h4 class="fw-bold mb-1" style="color:var(--navy)">
+      <i class="bi bi-table me-2"></i>Referencias Stock
+    </h4>
+    <p class="text-muted mb-0">Referencias con color, procesos y datos para generación de OPPs.</p>
+  </div>
+  <button class="btn btn-outline-secondary px-3" data-bs-toggle="collapse" data-bs-target="#panelReferencias">
+    <i class="bi bi-upload me-1"></i>Importar Referencias
+  </button>
+</div>
+
+<!-- Panel importar referencias -->
+<div class="collapse mb-4" id="panelReferencias">
+  <div class="card border-0 shadow-sm">
+    <div class="card-header d-flex align-items-center justify-content-between py-3 px-4"
+         style="background:var(--surface-2);border-bottom:1px solid var(--line);">
+      <span class="fw-semibold" style="color:var(--ink);">
+        <i class="bi bi-file-earmark-spreadsheet me-2" style="color:var(--navy)"></i>Importar desde Excel
+      </span>
+      <a href="{{ url_for('plantilla_referencias') }}" class="btn btn-sm btn-outline-primary">
+        <i class="bi bi-download me-1"></i>Descargar plantilla
+      </a>
+    </div>
+    <div class="card-body p-4">
+      <form method="POST" action="{{ url_for('importar_referencias') }}" enctype="multipart/form-data">
+        <div class="row g-3 align-items-end">
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Archivo Excel</label>
+            <input type="file" name="archivo_referencias" class="form-control" accept=".xlsx,.xls" required>
+            <div class="form-text">Usa la plantilla para asegurarte del formato correcto (14 columnas).</div>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-semibold">Modo</label>
+            <select name="modo_referencias" class="form-select">
+              <option value="merge">Agregar / actualizar (conserva existentes)</option>
+              <option value="reemplazar">Reemplazar todo</option>
+            </select>
+          </div>
+          <div class="col-md-2">
+            <button type="submit" class="btn btn-primary-custom w-100">
+              <i class="bi bi-upload me-1"></i>Importar
+            </button>
+          </div>
+        </div>
+      </form>
+      <div class="mt-3 p-3 rounded-3" style="background:var(--bg);border:1px solid var(--line);font-size:.83rem;color:var(--ink-2);">
+        <strong>Columnas:</strong> Referencia · Referencia PRD · Descripción · Color · Color # · Medida · U.M · Proceso 1 · Nombre Proceso 1 · Proceso 2 · Nombre Proceso 2 · REF2 · Notas Proceso 1 · Notas Proceso 2
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Tabla referencias -->
+{% if referencias %}
+<div class="card mb-5">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover mb-0 align-middle">
+        <thead style="background:#f8fafc;">
+          <tr>
+            <th class="ps-4 py-3" style="color:#64748b;font-size:.82rem;">REFERENCIA</th>
+            <th class="py-3" style="color:#64748b;font-size:.82rem;">COLOR</th>
+            <th class="py-3" style="color:#64748b;font-size:.82rem;">DESCRIPCIÓN</th>
+            <th class="py-3" style="color:#64748b;font-size:.82rem;">PROCESO 1</th>
+            <th class="py-3" style="color:#64748b;font-size:.82rem;">PROCESO 2</th>
+            <th class="py-3" style="color:#64748b;font-size:.82rem;">REF2</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for key, data in referencias.items() %}
+          {% set parts = key.split('|') %}
+          <tr>
+            <td class="ps-4 py-3">
+              <span class="badge rounded-pill fs-6 px-3" style="background:var(--navy)">{{ parts[0] }}</span>
+            </td>
+            <td class="py-3"><span class="badge rounded-pill px-3" style="background:var(--surface-2);color:var(--ink);">{{ parts[1] if parts|length > 1 else '' }}</span></td>
+            <td class="py-3" style="color:var(--ink-2);font-size:.9rem;">{{ data.descripcion or '—' }}</td>
+            <td class="py-3">
+              <span class="badge-proc">{{ data.ref1 or '—' }}</span>
+            </td>
+            <td class="py-3">
+              {% if data.ref2_i %}
+              <span class="badge-proc">{{ data.ref2_i }}</span>
+              {% else %}—{% endif %}
+            </td>
+            <td class="py-3" style="color:var(--ink-3);font-size:.88rem;">{{ data.ref2_j or '—' }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% else %}
+<div class="card mb-5">
+  <div class="card-body text-center py-5 text-muted">
+    <i class="bi bi-inbox d-block mb-3" style="font-size:3rem;color:#cbd5e1;"></i>
+    <p class="mb-3">No hay referencias cargadas aún.</p>
+    <button class="btn btn-primary-custom px-4" data-bs-toggle="collapse" data-bs-target="#panelReferencias">
+      <i class="bi bi-upload me-1"></i>Importar Referencias
+    </button>
+  </div>
+</div>
+{% endif %}
+
+<!-- ── SEPARADOR ── -->
+<hr class="my-4" style="border-color:var(--line);">
+
+<!-- ── SECCIÓN ESTRUCTURA PRODUCTIVA (RQ/SP futuro) ── -->
+<div class="d-flex align-items-center justify-content-between mb-3">
   <div>
     <h4 class="fw-bold mb-1" style="color:var(--navy)">
       <i class="bi bi-diagram-3 me-2"></i>Estructura Productiva
+      <span class="badge ms-2 px-2 py-1" style="background:var(--surface-2);color:var(--ink-3);font-size:.72rem;font-weight:500;">RQ / SP — Próximamente</span>
     </h4>
-    <p class="text-muted mb-0">Define las referencias y su secuencia de procesos de producción.</p>
+    <p class="text-muted mb-0">Secuencia de procesos por referencia (para tipos RQ y SP).</p>
   </div>
   <div class="d-flex gap-2">
     <button class="btn btn-outline-secondary px-3" data-bs-toggle="collapse" data-bs-target="#panelImportar">
@@ -21,7 +133,7 @@
   </div>
 </div>
 
-<!-- Panel carga masiva -->
+<!-- Panel carga masiva estructura -->
 <div class="collapse mb-4" id="panelImportar">
   <div class="card border-0 shadow-sm">
     <div class="card-header d-flex align-items-center justify-content-between py-3 px-4"
@@ -39,13 +151,12 @@
           <div class="col-md-6">
             <label class="form-label fw-semibold">Archivo Excel</label>
             <input type="file" name="archivo_masivo" class="form-control" accept=".xlsx,.xls" required>
-            <div class="form-text">Usa la plantilla para asegurarte del formato correcto.</div>
           </div>
           <div class="col-md-4">
-            <label class="form-label fw-semibold">Modo de importación</label>
+            <label class="form-label fw-semibold">Modo</label>
             <select name="modo_importar" class="form-select">
-              <option value="merge">Agregar / actualizar (conserva existentes)</option>
-              <option value="reemplazar">Reemplazar todo (borra las actuales)</option>
+              <option value="merge">Agregar / actualizar</option>
+              <option value="reemplazar">Reemplazar todo</option>
             </select>
           </div>
           <div class="col-md-2">
@@ -55,14 +166,9 @@
           </div>
         </div>
       </form>
-      <div class="mt-3 p-3 rounded-3" style="background:var(--bg);border:1px solid var(--line);font-size:.83rem;color:var(--ink-2);">
-        <strong>Formato del Excel:</strong> columna A = Referencia · columna B = Descripción · columnas C en adelante = Proceso 1, Proceso 2… (hasta 8 procesos).<br>
-        El <strong>último proceso</strong> de cada fila es el que genera los stickers.
-      </div>
     </div>
   </div>
 </div>
-
 
 {% if estructura %}
 <div class="card">
@@ -92,9 +198,6 @@
                 </span>
                 {% if not loop.last %}<i class="bi bi-arrow-right text-muted mx-1" style="font-size:.7rem"></i>{% endif %}
               {% endfor %}
-              <div class="text-muted mt-1" style="font-size:.75rem;">
-                {{ data.procesos | length }} procesos · El marcado con <i class="bi bi-star-fill" style="color:var(--green)"></i> genera stickers
-              </div>
             </td>
             <td class="py-3 pe-4 text-center">
               <button class="btn btn-sm btn-outline-primary me-1"
@@ -119,17 +222,13 @@
 </div>
 {% else %}
 <div class="card">
-  <div class="card-body text-center py-5 text-muted">
-    <i class="bi bi-inbox d-block mb-3" style="font-size:3rem;color:#cbd5e1;"></i>
-    <p class="mb-3">No hay referencias configuradas aún.</p>
-    <button class="btn btn-primary-custom px-4" data-bs-toggle="modal" data-bs-target="#modalRef" onclick="clearModal()">
-      <i class="bi bi-plus-lg me-1"></i>Agregar primera referencia
-    </button>
+  <div class="card-body text-center py-4 text-muted">
+    <p class="mb-0">No hay referencias de estructura configuradas.</p>
   </div>
 </div>
 {% endif %}
 
-<!-- Modal -->
+<!-- Modal nueva/editar referencia -->
 <div class="modal fade" id="modalRef" tabindex="-1">
   <div class="modal-dialog modal-lg">
     <div class="modal-content rounded-4">
@@ -141,7 +240,7 @@
         <div class="modal-body p-4">
           <div class="row g-3">
             <div class="col-md-4">
-              <label class="form-label fw-semibold">Código de referencia <span class="text-danger">*</span></label>
+              <label class="form-label fw-semibold">Código <span class="text-danger">*</span></label>
               <input type="text" name="ref" id="modalRef2" class="form-control" placeholder="Ej: REF001" required>
             </div>
             <div class="col-md-8">
@@ -149,23 +248,18 @@
               <input type="text" name="descripcion" id="modalDesc" class="form-control" placeholder="Nombre del producto">
             </div>
             <div class="col-12">
-              <label class="form-label fw-semibold">
-                Procesos <span class="text-danger">*</span>
-                <small class="text-muted fw-normal ms-1">— uno por línea, en orden de producción</small>
+              <label class="form-label fw-semibold">Procesos <span class="text-danger">*</span>
+                <small class="text-muted fw-normal ms-1">— uno por línea, en orden</small>
               </label>
-              <textarea name="procesos" id="modalProc" class="form-control" rows="7"
+              <textarea name="procesos" id="modalProc" class="form-control" rows="6"
                 placeholder="Corte&#10;Costura&#10;Terminado&#10;Empaque" required></textarea>
-              <div class="form-text">
-                <i class="bi bi-star-fill me-1" style="color:var(--green)"></i>
-                El <strong>último proceso</strong> es el que genera los stickers de producción.
-              </div>
             </div>
           </div>
         </div>
         <div class="modal-footer border-0 pt-0">
           <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
           <button type="submit" class="btn btn-primary-custom px-4">
-            <i class="bi bi-floppy me-1"></i>Guardar referencia
+            <i class="bi bi-floppy me-1"></i>Guardar
           </button>
         </div>
       </form>
@@ -186,7 +280,7 @@
   }
 
   function editRef(ref, desc, procesos) {
-    document.getElementById('modalTitle').textContent = 'Editar referencia: ' + ref;
+    document.getElementById('modalTitle').textContent = 'Editar: ' + ref;
     document.getElementById('modalRef2').value = ref;
     document.getElementById('modalRef2').setAttribute('readonly', true);
     document.getElementById('modalDesc').value = desc;

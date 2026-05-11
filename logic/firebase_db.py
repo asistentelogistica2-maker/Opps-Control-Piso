@@ -32,11 +32,31 @@ def is_available():
 def load_estructura():
     _init()
     data = rtdb.reference('/estructura').get()
-    return data or {}
+    return {k: v for k, v in (data or {}).items() if '|' not in k}
 
 
 def save_estructura(data):
     _init()
-    rtdb.reference('/estructura').set(data)
+    existing = rtdb.reference('/estructura').get() or {}
+    merged = {k: v for k, v in existing.items() if '|' in k}
+    merged.update(data)
+    rtdb.reference('/estructura').set(merged)
+
+
+def load_referencias():
+    _init()
+    data = rtdb.reference('/estructura').get()
+    return {k: v for k, v in (data or {}).items() if '|' in k}
+
+
+def save_referencias(nuevas, modo='merge'):
+    _init()
+    existing = rtdb.reference('/estructura').get() or {}
+    if modo == 'reemplazar':
+        sin_refs = {k: v for k, v in existing.items() if '|' not in k}
+    else:
+        sin_refs = existing
+    sin_refs.update(nuevas)
+    rtdb.reference('/estructura').set(sin_refs)
 
 
