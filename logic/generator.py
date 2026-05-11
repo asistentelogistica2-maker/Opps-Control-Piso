@@ -4,7 +4,6 @@ from datetime import date, datetime, timedelta
 from pathlib import Path
 
 BASE_DIR = Path(__file__).parent.parent
-COUNTER_FILE = BASE_DIR / "data" / "opp_counter.json"
 ESTRUCTURA_FILE = BASE_DIR / "config" / "estructura.json"
 
 try:
@@ -34,20 +33,6 @@ def save_estructura(data):
     with open(ESTRUCTURA_FILE, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=2, ensure_ascii=False)
 
-
-def _next_opp_number():
-    if _use_firebase():
-        return _fdb.next_opp_number()
-    COUNTER_FILE.parent.mkdir(parents=True, exist_ok=True)
-    if COUNTER_FILE.exists():
-        with open(COUNTER_FILE) as f:
-            data = json.load(f)
-    else:
-        data = {"last": 0}
-    data["last"] += 1
-    with open(COUNTER_FILE, "w") as f:
-        json.dump(data, f)
-    return data["last"]
 
 
 def generate_opps(input_rows, estructura, tipo_opp="Stock"):

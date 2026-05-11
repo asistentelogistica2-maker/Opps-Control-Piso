@@ -40,11 +40,3 @@ def save_estructura(data):
     rtdb.reference('/estructura').set(data)
 
 
-def next_opp_number():
-    _init()
-    ref = rtdb.reference('/opp_counter/last')
-
-    def increment(current):
-        return (current or 0) + 1
-
-    return ref.transaction(increment)
