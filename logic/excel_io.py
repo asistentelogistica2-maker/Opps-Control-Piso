@@ -1,16 +1,13 @@
+from pathlib import Path
 import openpyxl
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 
 
 _HEADER_MAPPING = {
-    "cliente": "cliente",
+    "fecha": "fecha",
     "referencia": "referencia",
+    "color": "color",
     "cantidad": "cantidad",
-    "notas del ítem": "notas_item",
-    "notas del item": "notas_item",
-    "notas_item": "notas_item",
-    "notas generales": "notas_generales",
-    "notas_generales": "notas_generales",
 }
 
 
@@ -30,13 +27,54 @@ def read_input_excel(filepath):
             key = _HEADER_MAPPING.get(h, h)
             row_dict[key] = row[i] if i < len(row) else None
         rows.append({
-            "cliente": str(row_dict.get("cliente", "") or ""),
-            "referencia": str(row_dict.get("referencia", "") or ""),
+            "fecha": row_dict.get("fecha"),
+            "referencia": str(row_dict.get("referencia", "") or "").strip(),
+            "color": str(row_dict.get("color", "") or "").strip(),
             "cantidad": int(row_dict.get("cantidad", 0) or 0),
-            "notas_item": str(row_dict.get("notas_item", "") or ""),
-            "notas_generales": str(row_dict.get("notas_generales", "") or ""),
         })
     return rows
+
+
+def load_referencias_stock():
+    path = Path(__file__).parent.parent / "Referencias Stock.xlsx"
+    if not path.exists():
+        return {}
+
+    wb = openpyxl.load_workbook(path, data_only=True)
+    ws = wb.active
+
+    lookup = {}
+    for row in ws.iter_rows(min_row=2, values_only=True):
+        ref_a = str(row[0]).strip() if row[0] else ""   # A: Referencia
+        ref_b = str(row[1]).strip() if row[1] else ""   # B: Referenciaprd
+        color = str(row[3]).strip() if row[3] else ""   # D: Color
+        color_num = row[4]                               # E: Color #
+        medida = str(row[5]).strip() if row[5] else ""  # F: Medida
+        um = str(row[6]).strip() if row[6] else ""      # G: Unidad de medida
+        ref1 = str(row[7]).strip() if row[7] else ""    # H: Ref 1
+        ref2_i = str(row[8]).strip() if row[8] else ""  # I: Ref 2 (proceso OPP2)
+        ref2_j = str(row[9]).strip() if row[9] else ""  # J: Ref 2 (valor REF2)
+        notas1 = str(row[10]).strip() if row[10] else ""  # K: Notas Ref 1
+        notas2 = str(row[11]).strip() if row[11] else ""  # L: Notas Ref 2
+
+        if not ref_a or not color:
+            continue
+
+        key = (ref_a.upper(), color.upper())
+        lookup[key] = {
+            "referencia_a": ref_a,
+            "referencia_b": ref_b,
+            "color_num": color_num,
+            "medida": medida,
+            "um": um,
+            "ref1": ref1,
+            "ref2_i": ref2_i,
+            "ref2_j": ref2_j,
+            "notas1": notas1,
+            "notas2": notas2,
+        }
+
+    return lookup
 
 
 def _apply_headers(ws, headers, fill_color):
@@ -59,10 +97,7 @@ def _auto_width(ws):
         ws.column_dimensions[col[0].column_letter].width = min(max_len + 4, 40)
 
 
-def write_erp_excel(opp_rows, target):
-    from datetime import date
-    today = date.today().strftime("%Y%m%d")
-
+def write_jumbo_excel(opp_list, target):
     wb = openpyxl.Workbook()
 
     # --- Hoja Documentos ---
@@ -73,14 +108,14 @@ def write_erp_excel(opp_rows, target):
         "REF1", "REF2", "REF3", "NOTAS",
     ]
     _apply_headers(ws_doc, doc_headers, "1F4E79")
-    for r, row in enumerate(opp_rows, 2):
-        ws_doc.cell(row=r, column=1, value=row["OPP"])
-        ws_doc.cell(row=r, column=2, value=today)
-        ws_doc.cell(row=r, column=3, value="")           # PLANIFICADOR — pendiente
-        ws_doc.cell(row=r, column=4, value=row["Cliente"])  # REF1
-        ws_doc.cell(row=r, column=5, value="")           # REF2 — pendiente
-        ws_doc.cell(row=r, column=6, value="")           # REF3 — pendiente
-        ws_doc.cell(row=r, column=7, value=row["notas_generales"])
+    for r, opp in enumerate(opp_list, 2):
+        ws_doc.cell(row=r, column=1, value=opp["opp"])
+        ws_doc.cell(row=r, column=2, value=opp["fecha"])
+        ws_doc.cell(row=r, column=3, value=opp["planificador"])
+        ws_doc.cell(row=r, column=4, value=opp["ref1"])
+        ws_doc.cell(row=r, column=5, value=opp["ref2"])
+        ws_doc.cell(row=r, column=6, value="")
+        ws_doc.cell(row=r, column=7, value=opp["notas"])
     _auto_width(ws_doc)
 
     # --- Hoja Items ---
@@ -91,35 +126,45 @@ def write_erp_excel(opp_rows, target):
         "METODO LISTA", "METODO RUTA", "MEDIDA REAL", "BODEGA",
     ]
     _apply_headers(ws_items, item_headers, "1F4E79")
-    for r, row in enumerate(opp_rows, 2):
-        ws_items.cell(row=r, column=1,  value=row["OPP"])
-        ws_items.cell(row=r, column=2,  value="")             # REGISTRO MVTO — pendiente
-        ws_items.cell(row=r, column=3,  value=row["Referencia"])
-        ws_items.cell(row=r, column=4,  value="")             # EXT1 — pendiente
-        ws_items.cell(row=r, column=5,  value="")             # EXT2 — pendiente
-        ws_items.cell(row=r, column=6,  value="")             # U.M — pendiente
-        ws_items.cell(row=r, column=7,  value=row["Cantidad"])
-        ws_items.cell(row=r, column=8,  value="")             # FECHA INICIO — pendiente
-        ws_items.cell(row=r, column=9,  value="")             # FECHA TERMINACION — pendiente
-        ws_items.cell(row=r, column=10, value="")             # METODO LISTA — pendiente
-        ws_items.cell(row=r, column=11, value=row["Proceso"]) # METODO RUTA
-        ws_items.cell(row=r, column=12, value=row["notas_item"])  # MEDIDA REAL
-        ws_items.cell(row=r, column=13, value="")             # BODEGA — pendiente
+    for r, opp in enumerate(opp_list, 2):
+        ws_items.cell(row=r, column=1, value=opp["opp"])
+        ws_items.cell(row=r, column=2, value=opp["opp"])
+        ws_items.cell(row=r, column=3, value=opp["referencia_item"])
+        ws_items.cell(row=r, column=4, value=opp["ext1"])
+        ws_items.cell(row=r, column=5, value=opp["ext2"])
+        ws_items.cell(row=r, column=6, value=opp["um"])
+        ws_items.cell(row=r, column=7, value=opp["cantidad"])
+        ws_items.cell(row=r, column=8, value=opp["fecha_inicio"])
+        ws_items.cell(row=r, column=9, value=opp["fecha_fin"])
+        c_lista = ws_items.cell(row=r, column=10, value="0001")
+        c_lista.number_format = "@"
+        c_ruta = ws_items.cell(row=r, column=11, value="0001")
+        c_ruta.number_format = "@"
+        ws_items.cell(row=r, column=12, value="")
+        ws_items.cell(row=r, column=13, value="")
     _auto_width(ws_items)
 
     wb.save(target)
 
 
-def write_sticker_excel(sticker_rows, target):
+def create_input_template(target):
+    from datetime import date
     wb = openpyxl.Workbook()
     ws = wb.active
-    ws.title = "Stickers"
-    headers = ["Cliente", "Numero de documento", "Medida real", "Numero de pieza", "Cantidad"]
-    _apply_headers(ws, headers, "375623")
-    for r, row in enumerate(sticker_rows, 2):
-        for col, key in enumerate(headers, 1):
-            ws.cell(row=r, column=col, value=row[key])
-    _auto_width(ws)
+    ws.title = "Entrada"
+    headers = ["Fecha", "Referencia", "Color", "Cantidad"]
+    _apply_headers(ws, headers, "2E75B6")
+    sample_rows = [
+        [date.today(), "PUDT0260", "CEDRO SIL", 10],
+        [date.today(), "PUDT0265", "WENGUE CL", 5],
+    ]
+    for r, row in enumerate(sample_rows, 2):
+        for col, val in enumerate(row, 1):
+            ws.cell(row=r, column=col, value=val)
+    for cell in ws["A"][1:]:
+        cell.number_format = "DD/MM/YYYY"
+    for i, w in enumerate([15, 15, 20, 12]):
+        ws.column_dimensions[openpyxl.utils.get_column_letter(i + 1)].width = w
     wb.save(target)
 
 
@@ -133,7 +178,6 @@ def create_estructura_template(target):
     sample_rows = [
         ["REF001", "Puerta Principal Madera", "Corte", "Lijado", "Pintura", "Terminado", "Empaque", "", "", ""],
         ["REF002", "Marco Metálico", "Corte Metal", "Soldadura", "Pintura", "Empaque", "", "", "", ""],
-        ["REF003", "Panel Decorativo", "Corte", "Ensamble", "Lacado", "Control Calidad", "Empaque", "", "", ""],
     ]
     for r, row in enumerate(sample_rows, 2):
         for col, val in enumerate(row, 1):
@@ -160,21 +204,3 @@ def read_estructura_excel(filepath):
             continue
         referencias[ref] = {"descripcion": descripcion, "procesos": procesos}
     return referencias, errors
-
-
-def create_input_template(target):
-    wb = openpyxl.Workbook()
-    ws = wb.active
-    ws.title = "Entrada"
-    headers = ["Cliente", "Referencia", "Cantidad", "Notas del ítem", "Notas generales"]
-    _apply_headers(ws, headers, "2E75B6")
-    sample_rows = [
-        ["CLIENTE A", "REF001", 5, "Medida: 50x30 cm", "Pedido urgente"],
-        ["CLIENTE B", "REF002", 3, "Medida: 40x20 cm", ""],
-    ]
-    for r, row in enumerate(sample_rows, 2):
-        for col, val in enumerate(row, 1):
-            ws.cell(row=r, column=col, value=val)
-    for i, letter in enumerate("ABCDE"):
-        ws.column_dimensions[letter].width = [20, 15, 12, 30, 25][i]
-    wb.save(target)

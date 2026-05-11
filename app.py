@@ -1,17 +1,25 @@
 import os
 import io
 import uuid
-import tempfile
 from flask import Flask, render_template, request, send_file, redirect, url_for, flash
-from logic.generator import load_estructura, save_estructura, generate_opps
-from logic.excel_io import read_input_excel, write_erp_excel, create_input_template, create_estructura_template, read_estructura_excel
-from generate_stickers_pdf import export_stickers_from_orders
+from logic.generator import load_estructura, save_estructura, generate_opps_stock
+from logic.excel_io import (
+    read_input_excel, create_input_template, write_jumbo_excel,
+    load_referencias_stock, create_estructura_template, read_estructura_excel,
+)
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'dev-secret-key')
 
-# In-memory cache for generated files (cleared on restart)
 _cache = {}
+_referencias_stock = None
+
+
+def get_referencias_stock():
+    global _referencias_stock
+    if _referencias_stock is None:
+        _referencias_stock = load_referencias_stock()
+    return _referencias_stock
 
 
 @app.route('/')
@@ -26,20 +34,13 @@ def generar():
         flash('Seleccione un archivo Excel de entrada.', 'warning')
         return redirect(url_for('index'))
 
-    gen_erp = 'gen_erp' in request.form
-    gen_stickers = 'gen_stickers' in request.form
     tipo_opp = request.form.get('tipo_opp', 'Stock')
 
-    if not gen_erp and not gen_stickers:
-        flash('Seleccione al menos una opción de generación.', 'warning')
+    if tipo_opp != 'Stock':
+        flash('Este tipo de OPP aún no está disponible.', 'info')
         return redirect(url_for('index'))
 
     try:
-        estructura = load_estructura()
-        if not estructura:
-            flash('La estructura productiva está vacía. Configure las referencias primero.', 'warning')
-            return redirect(url_for('estructura'))
-
         stream = io.BytesIO(archivo.read())
         rows = read_input_excel(stream)
 
@@ -47,42 +48,30 @@ def generar():
             flash('El archivo Excel no tiene datos.', 'warning')
             return redirect(url_for('index'))
 
-        opp_rows, sticker_rows, errors = generate_opps(rows, estructura, tipo_opp)
+        referencias = get_referencias_stock()
+        if not referencias:
+            flash('No se encontró el archivo de Referencias Stock.', 'danger')
+            return redirect(url_for('index'))
+
+        opp_list, errors = generate_opps_stock(rows, referencias)
+
+        if not opp_list:
+            flash('No se generaron OPPs. Verifique las referencias y colores.', 'warning')
+            for e in errors:
+                flash(e, 'warning')
+            return redirect(url_for('index'))
+
         token = str(uuid.uuid4())
-
-        if gen_erp and opp_rows:
-            buf = io.BytesIO()
-            write_erp_excel(opp_rows, buf)
-            _cache[f"{token}_erp"] = buf.getvalue()
-
-        if gen_stickers and sticker_rows:
-            # Convertir formato sticker_rows a formato para PDF
-            stickers_data = [
-                {
-                    'cliente': row['Cliente'],
-                    'doc': str(row['Numero de documento']),
-                    'medida': row['Medida real'],
-                    'pieza': row['Numero de pieza'],
-                }
-                for row in sticker_rows
-            ]
-            # Generar PDF en lugar de Excel
-            with tempfile.NamedTemporaryFile(mode='wb', delete=False, suffix='.pdf') as tmp:
-                temp_pdf = tmp.name
-            export_stickers_from_orders(stickers_data, temp_pdf)
-            with open(temp_pdf, 'rb') as f:
-                _cache[f"{token}_stickers"] = f.read()
-            os.remove(temp_pdf)
+        buf = io.BytesIO()
+        write_jumbo_excel(opp_list, buf)
+        _cache[f"{token}_jumbo"] = buf.getvalue()
 
         return render_template(
             'resultados.html',
-            opp_rows=opp_rows,
-            sticker_rows=sticker_rows,
+            opp_list=opp_list,
             errors=errors,
             token=token,
             tipo_opp=tipo_opp,
-            has_erp=gen_erp and bool(opp_rows),
-            has_stickers=gen_stickers and bool(sticker_rows),
         )
 
     except Exception as exc:
@@ -96,14 +85,17 @@ def descargar(token, tipo):
     if not data:
         flash('Archivo no disponible. Vuelva a generar.', 'warning')
         return redirect(url_for('index'))
-    
-    if tipo == 'erp':
-        filename = 'OPP_ERP.xlsx'
+
+    if tipo == 'jumbo':
+        filename = "OPP's_jumbo.xlsx"
         mimetype = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-    else:  # stickers
+    elif tipo == 'stickers':
         filename = 'stickers.pdf'
         mimetype = 'application/pdf'
-    
+    else:
+        filename = 'archivo.xlsx'
+        mimetype = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+
     return send_file(
         io.BytesIO(data),
         download_name=filename,

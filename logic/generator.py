@@ -1,5 +1,6 @@
 import json
 import os
+from datetime import date, datetime, timedelta
 from pathlib import Path
 
 BASE_DIR = Path(__file__).parent.parent
@@ -101,3 +102,75 @@ def generate_opps(input_rows, estructura, tipo_opp="Stock"):
                     })
 
     return opp_rows, sticker_rows, errors
+
+
+def generate_opps_stock(input_rows, referencias_lookup):
+    opp_list = []
+    errors = []
+
+    for row in input_rows:
+        fecha_raw = row.get("fecha")
+        ref_input = str(row.get("referencia", "") or "").strip()
+        color_input = str(row.get("color", "") or "").strip()
+        cantidad = int(row.get("cantidad", 0) or 0)
+
+        if not ref_input or not color_input:
+            continue
+
+        key = (ref_input.upper(), color_input.upper())
+        ref_data = referencias_lookup.get(key)
+        if not ref_data:
+            errors.append(f"Referencia '{ref_input}' con color '{color_input}' no encontrada.")
+            continue
+
+        if isinstance(fecha_raw, datetime):
+            fecha_dt = fecha_raw.date()
+        elif isinstance(fecha_raw, date):
+            fecha_dt = fecha_raw
+        else:
+            try:
+                fecha_dt = datetime.strptime(str(fecha_raw), "%Y-%m-%d").date()
+            except Exception:
+                fecha_dt = date.today()
+
+        fecha_str = fecha_dt.strftime("%Y%m%d")
+        fecha_mas2 = (fecha_dt + timedelta(days=2)).strftime("%Y%m%d")
+
+        tiene_dos = bool(ref_data["ref1"]) and bool(ref_data["ref2_i"])
+
+        opp_num1 = _next_opp_number()
+        opp_list.append({
+            "opp": opp_num1,
+            "fecha": fecha_str,
+            "planificador": "71226229",
+            "ref1": ref_data["ref1"],
+            "ref2": ref_data["ref2_j"],
+            "notas": ref_data["notas1"],
+            "referencia_item": ref_data["referencia_b"] if tiene_dos else ref_data["referencia_a"],
+            "ext1": ref_data["color_num"],
+            "ext2": ref_data["medida"],
+            "um": ref_data["um"],
+            "cantidad": cantidad,
+            "fecha_inicio": fecha_str,
+            "fecha_fin": fecha_str,
+        })
+
+        if tiene_dos:
+            opp_num2 = _next_opp_number()
+            opp_list.append({
+                "opp": opp_num2,
+                "fecha": fecha_str,
+                "planificador": "71226229",
+                "ref1": ref_data["ref2_i"],
+                "ref2": ref_data["ref2_j"],
+                "notas": ref_data["notas2"],
+                "referencia_item": ref_data["referencia_a"],
+                "ext1": ref_data["color_num"],
+                "ext2": ref_data["medida"],
+                "um": ref_data["um"],
+                "cantidad": cantidad,
+                "fecha_inicio": fecha_mas2,
+                "fecha_fin": fecha_mas2,
+            })
+
+    return opp_list, errors

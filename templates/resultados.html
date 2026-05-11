@@ -4,7 +4,6 @@
 
 {% block content %}
 
-<!-- Header -->
 <div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-3">
   <div>
     <h4 class="fw-bold mb-1" style="color:var(--ink)">
@@ -12,28 +11,19 @@
     </h4>
     <p class="mb-0" style="color:var(--ink-3)">
       Tipo: <span class="badge rounded-pill px-3" style="background:var(--ink);color:#fff;font-size:.9rem;">{{ tipo_opp }}</span>
-      &nbsp;·&nbsp; <strong style="color:var(--ink)">{{ opp_rows | length }}</strong> órdenes
-      &nbsp;·&nbsp; <strong style="color:var(--ink)">{{ sticker_rows | length }}</strong> stickers
+      &nbsp;·&nbsp; <strong style="color:var(--ink)">{{ opp_list | length }}</strong> órdenes
     </p>
   </div>
   <div class="d-flex gap-2 flex-wrap">
-    {% if has_erp %}
-    <a href="{{ url_for('descargar', token=token, tipo='erp') }}" class="btn btn-primary-custom px-4">
-      <i class="bi bi-file-earmark-excel me-2"></i>Descargar ERP
+    <a href="{{ url_for('descargar', token=token, tipo='jumbo') }}" class="btn btn-primary-custom px-4">
+      <i class="bi bi-file-earmark-excel me-2"></i>Descargar OPP's Jumbo
     </a>
-    {% endif %}
-    {% if has_stickers and tipo_opp != 'Stock' %}
-    <a href="{{ url_for('descargar', token=token, tipo='stickers') }}" class="btn btn-green px-4">
-      <i class="bi bi-tags me-2"></i>Descargar Stickers
-    </a>
-    {% endif %}
     <a href="{{ url_for('index') }}" class="btn px-4" style="background:var(--surface-2);border:1px solid var(--line);color:var(--ink);font-weight:600;">
       <i class="bi bi-arrow-left me-1"></i>Volver
     </a>
   </div>
 </div>
 
-<!-- Errors -->
 {% if errors %}
 <div class="alert alert-warning rounded-3 mb-4">
   <i class="bi bi-exclamation-triangle me-2"></i><strong>Advertencias:</strong>
@@ -43,103 +33,43 @@
 </div>
 {% endif %}
 
-<!-- Tabs -->
 <div class="card">
   <div class="card-body p-0">
-    <ul class="nav nav-tabs px-3 pt-3" id="tabs">
-      <li class="nav-item">
-        <button class="nav-link active fw-semibold" data-bs-toggle="tab" data-bs-target="#tabErp" style="color:var(--ink)">
-          <i class="bi bi-file-earmark-spreadsheet me-1"></i>OPP ERP
-          <span class="badge ms-1" style="background:var(--ink);color:#fff;">{{ opp_rows | length }}</span>
-        </button>
-      </li>
-      {% if tipo_opp != 'Stock' %}
-      <li class="nav-item">
-        <button class="nav-link fw-semibold" data-bs-toggle="tab" data-bs-target="#tabStk" style="color:var(--ink-3)">
-          <i class="bi bi-tags me-1"></i>Stickers
-          <span class="badge ms-1" style="background:var(--teal);color:#fff;">{{ sticker_rows | length }}</span>
-        </button>
-      </li>
-      {% endif %}
-    </ul>
-
-    <div class="tab-content">
-
-      <!-- OPP ERP Tab -->
-      <div class="tab-pane fade show active p-3" id="tabErp">
-        {% if opp_rows %}
-        <div class="table-responsive">
-          <table class="table table-opp table-hover table-bordered mb-0 align-middle">
-            <thead>
-              <tr>
-                <th>Tipo</th>
-                <th>OPP</th>
-                <th>Cliente</th>
-                <th>Referencia</th>
-                <th>Proceso</th>
-                <th class="text-center">Cantidad</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for row in opp_rows %}
-              <tr>
-                <td><span class="badge rounded-pill" style="background:var(--yellow);color:var(--ink);">{{ row.Tipo }}</span></td>
-                <td><span class="badge" style="background:var(--surface-2);color:var(--ink);">{{ row.OPP }}</span></td>
-                <td style="color:var(--ink);">{{ row.Cliente }}</td>
-                <td><span class="badge rounded-pill" style="background:var(--ink);color:#fff;">{{ row.Referencia }}</span></td>
-                <td>{{ row.Proceso }}</td>
-                <td class="text-center fw-bold">{{ row.Cantidad }}</td>
-              </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
-        {% else %}
-        <div class="text-center text-muted py-4">No se generaron OPPs.</div>
-        {% endif %}
-      </div>
-
-      <!-- Stickers Tab -->
-      <div class="tab-pane fade p-3" id="tabStk">
-        {% if sticker_rows %}
-        <div class="table-responsive">
-          <table class="table table-stk table-hover table-bordered mb-0 align-middle">
-            <thead>
-              <tr>
-                <th>Cliente</th>
-                <th>N° Documento</th>
-                <th>Medida real</th>
-                <th class="text-center">N° Pieza</th>
-                <th class="text-center">Cantidad</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for row in sticker_rows %}
-              <tr>
-                <td style="color:var(--ink);">{{ row.Cliente }}</td>
-                <td><span class="badge" style="background:var(--surface-2);color:var(--ink);">{{ row['Numero de documento'] }}</span></td>
-                <td style="color:var(--ink);">{{ row['Medida real'] }}</td>
-                <td class="text-center fw-bold" style="color:var(--ink);">{{ row['Numero de pieza'] }}</td>
-                <td class="text-center" style="color:var(--ink);">{{ row.Cantidad }}</td>
-              </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
-        {% else %}
-        <div class="text-center py-4" style="color:var(--ink-3);">No se generaron stickers.</div>
-        {% endif %}
-      </div>
-
+    <div class="table-responsive">
+      <table class="table table-opp table-hover table-bordered mb-0 align-middle">
+        <thead>
+          <tr>
+            <th>OPP</th>
+            <th>Fecha</th>
+            <th>Referencia</th>
+            <th>REF1</th>
+            <th>REF2</th>
+            <th class="text-center">Cantidad</th>
+            <th>Notas</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in opp_list %}
+          <tr>
+            <td><span class="badge" style="background:var(--navy);color:#fff;">{{ row.opp }}</span></td>
+            <td style="color:var(--ink-3);font-size:.88rem;">{{ row.fecha }}</td>
+            <td><span class="badge rounded-pill" style="background:var(--ink);color:#fff;">{{ row.referencia_item }}</span></td>
+            <td><span class="badge rounded-pill" style="background:var(--yellow);color:var(--ink);">{{ row.ref1 }}</span></td>
+            <td style="color:var(--ink-2);">{{ row.ref2 }}</td>
+            <td class="text-center fw-bold">{{ row.cantidad }}</td>
+            <td style="color:var(--ink-3);font-size:.82rem;max-width:260px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="{{ row.notas }}">{{ row.notas }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
     </div>
   </div>
 </div>
 
-<!-- Download reminder -->
 <div class="mt-3 px-3 py-2 rounded-3 d-flex align-items-center gap-2"
      style="background:var(--surface-2);border:1px solid var(--line);color:var(--ink-3);font-size:.85rem;">
   <i class="bi bi-info-circle" style="color:var(--ink-4);font-size:1rem;flex-shrink:0;"></i>
-  <span>Los archivos estarán disponibles mientras no recarges la página.</span>
+  <span>El archivo estará disponible mientras no recargues la página.</span>
 </div>
 
 {% endblock %}
