@@ -35,6 +35,12 @@ def read_input_excel(filepath):
     return rows
 
 
+def _safe_fb_key(s):
+    for ch in ['$', '#', '[', ']', '/', '.']:
+        s = s.replace(ch, '-')
+    return s.strip()
+
+
 def read_referencias_excel(filepath):
     """Lee el template unificado de referencias (14 cols) y retorna dict para Firebase."""
     wb = openpyxl.load_workbook(filepath, data_only=True)
@@ -46,7 +52,7 @@ def read_referencias_excel(filepath):
         color = str(row[3]).strip() if row[3] else ""
         if not ref_a or not color:
             continue
-        fb_key = f"{ref_a}|{color}"
+        fb_key = f"{_safe_fb_key(ref_a)}|{_safe_fb_key(color)}"
         referencias[fb_key] = {
             "referencia_a": ref_a,
             "referencia_b": str(row[1]).strip() if row[1] else "",

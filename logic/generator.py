@@ -89,13 +89,19 @@ def generate_opps(input_rows, estructura, tipo_opp="Stock"):
     return opp_rows, sticker_rows, errors
 
 
+def _safe_key(s):
+    for ch in ['$', '#', '[', ']', '/', '.']:
+        s = s.replace(ch, '-')
+    return s.strip().upper()
+
+
 def load_referencias_stock():
     if _use_firebase():
         raw = _fdb.load_referencias()
         lookup = {}
         for fb_key, data in raw.items():
             ref, color = fb_key.split('|', 1)
-            lookup[(ref.upper(), color.upper())] = data
+            lookup[(_safe_key(ref), _safe_key(color))] = data
         return lookup
     return {}
 
@@ -114,7 +120,7 @@ def generate_opps_stock(input_rows, referencias_lookup):
         if not ref_input or not color_input:
             continue
 
-        key = (ref_input.upper(), color_input.upper())
+        key = (_safe_key(ref_input), _safe_key(color_input))
         ref_data = referencias_lookup.get(key)
         if not ref_data:
             errors.append(f"Referencia '{ref_input}' con color '{color_input}' no encontrada.")
