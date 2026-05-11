@@ -107,6 +107,7 @@ def generate_opps(input_rows, estructura, tipo_opp="Stock"):
 def generate_opps_stock(input_rows, referencias_lookup):
     opp_list = []
     errors = []
+    counter = 0
 
     for row in input_rows:
         fecha_raw = row.get("fecha")
@@ -138,7 +139,8 @@ def generate_opps_stock(input_rows, referencias_lookup):
 
         tiene_dos = bool(ref_data["ref1"]) and bool(ref_data["ref2_i"])
 
-        opp_num1 = _next_opp_number()
+        counter += 1
+        opp_num1 = counter
         opp_list.append({
             "opp": opp_num1,
             "fecha": fecha_str,
@@ -156,7 +158,8 @@ def generate_opps_stock(input_rows, referencias_lookup):
         })
 
         if tiene_dos:
-            opp_num2 = _next_opp_number()
+            counter += 1
+            opp_num2 = counter
             opp_list.append({
                 "opp": opp_num2,
                 "fecha": fecha_str,
