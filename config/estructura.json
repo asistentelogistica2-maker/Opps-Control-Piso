@@ -1,28 +1,317 @@
 {
-  "REF001": {
-    "descripcion": "Producto ejemplo 1",
-    "procesos": [
-      "Corte",
-      "Costura",
-      "Terminado",
-      "Empaque"
-    ]
-  },
-  "REF002": {
-    "descripcion": "Producto ejemplo 2",
-    "procesos": [
-      "Corte",
-      "Ensamble",
-      "Control de calidad",
-      "Empaque"
-    ]
-  },
   "PUDT0260": {
+    "descripcion": "PUERTA DEKO 60x200 cm",
+    "procesos": [
+      "Arborit",
+      "EMPAQUE"
+    ]
+  },
+  "PUDT0265": {
     "descripcion": "PUERTA DEKO 65x200 cm",
     "procesos": [
-      "Corte",
-      "Detallado",
-      "Empaque"
+      "Arborit",
+      "EMPAQUE"
+    ]
+  },
+  "PUDT0270": {
+    "descripcion": "PUERTA DEKO 70x200 cm",
+    "procesos": [
+      "Arborit",
+      "EMPAQUE"
+    ]
+  },
+  "PUDT0275": {
+    "descripcion": "PUERTA DEKO 75x200 cm",
+    "procesos": [
+      "Arborit",
+      "EMPAQUE"
+    ]
+  },
+  "PUDT0280": {
+    "descripcion": "PUERTA DEKO 80x200 cm",
+    "procesos": [
+      "Arborit",
+      "EMPAQUE"
+    ]
+  },
+  "PUDT0285": {
+    "descripcion": "PUERTA DEKO 85x200 cm",
+    "procesos": [
+      "Arborit",
+      "EMPAQUE"
+    ]
+  },
+  "PUDT0290": {
+    "descripcion": "PUERTA DEKO 90x200 cm",
+    "procesos": [
+      "Arborit",
+      "EMPAQUE"
+    ]
+  },
+  "PUMS0260": {
+    "descripcion": "PUERTA SINFONIA 60x200",
+    "procesos": [
+      "Arborit"
+    ]
+  },
+  "PUMS0265": {
+    "descripcion": "PUERTA SINFONIA 65x200",
+    "procesos": [
+      "Arborit"
+    ]
+  },
+  "PUMS0270": {
+    "descripcion": "PUERTA SINFONIA 70x200",
+    "procesos": [
+      "Arborit"
+    ]
+  },
+  "PUMS0275": {
+    "descripcion": "PUERTA SINFONIA 75x200",
+    "procesos": [
+      "Arborit"
+    ]
+  },
+  "PUMS0280": {
+    "descripcion": "PUERTA SINFONIA 80x200",
+    "procesos": [
+      "Arborit"
+    ]
+  },
+  "PUMS0285": {
+    "descripcion": "PUERTA SINFONIA 85x200",
+    "procesos": [
+      "Arborit"
+    ]
+  },
+  "PUMS0290": {
+    "descripcion": "PUERTA SINFONIA 90x200",
+    "procesos": [
+      "Arborit"
+    ]
+  },
+  "PUMP0260": {
+    "descripcion": "PUERTA PRESTIGE 60x200",
+    "procesos": [
+      "Arborit"
+    ]
+  },
+  "PUMP0265": {
+    "descripcion": "PUERTA PRESTIGE 65x200",
+    "procesos": [
+      "Arborit"
+    ]
+  },
+  "PUMP0270": {
+    "descripcion": "PUERTA PRESTIGE 70x200",
+    "procesos": [
+      "Arborit"
+    ]
+  },
+  "PUMP0275": {
+    "descripcion": "PUERTA PRESTIGE 75x200",
+    "procesos": [
+      "Arborit"
+    ]
+  },
+  "PUMP0280": {
+    "descripcion": "PUERTA PRESTIGE 80x200",
+    "procesos": [
+      "Arborit"
+    ]
+  },
+  "PUMP0285": {
+    "descripcion": "PUERTA PRESTIGE 85x200",
+    "procesos": [
+      "Arborit"
+    ]
+  },
+  "PUMP0290": {
+    "descripcion": "PUERTA PRESTIGE 90x200",
+    "procesos": [
+      "Arborit"
+    ]
+  },
+  "PUTK0260": {
+    "descripcion": "PUERTA TX ECO OKUME 60x200",
+    "procesos": [
+      "Arborit"
+    ]
+  },
+  "PUTK0265": {
+    "descripcion": "PUERTA TX ECO OKUME 65x200",
+    "procesos": [
+      "Arborit"
+    ]
+  },
+  "PUTK0270": {
+    "descripcion": "PUERTA TX ECO OKUME 70x200",
+    "procesos": [
+      "Arborit"
+    ]
+  },
+  "PUTK0275": {
+    "descripcion": "PUERTA TX ECO OKUME 75x200",
+    "procesos": [
+      "Arborit"
+    ]
+  },
+  "PUTK0280": {
+    "descripcion": "PUERTA TX ECO OKUME 80x200",
+    "procesos": [
+      "Arborit"
+    ]
+  },
+  "PUTK0285": {
+    "descripcion": "PUERTA TX ECO OKUME 85x200",
+    "procesos": [
+      "Arborit"
+    ]
+  },
+  "PUTK0290": {
+    "descripcion": "PUERTA TX ECO OKUME 90x200",
+    "procesos": [
+      "Arborit"
+    ]
+  },
+  "PUFTM038070": {
+    "descripcion": "PUERTA AJUSTABLE 70x225cm",
+    "procesos": [
+      "Arborit",
+      "MAQUINADO"
+    ]
+  },
+  "PUFTM038080": {
+    "descripcion": "PUERTA AJUSTABLE 80x225cm",
+    "procesos": [
+      "Arborit",
+      "MAQUINADO"
+    ]
+  },
+  "PUFTM038090": {
+    "descripcion": "PUERTA AJUSTABLE 90x225cm",
+    "procesos": [
+      "Arborit",
+      "MAQUINADO"
+    ]
+  },
+  "PUFTM038270": {
+    "descripcion": "PUERTA AJUSTABLE 70x210cm",
+    "procesos": [
+      "Arborit",
+      "MAQUINADO"
+    ]
+  },
+  "PUFTM038280": {
+    "descripcion": "PUERTA AJUSTABLE 80x210cm",
+    "procesos": [
+      "Arborit",
+      "MAQUINADO"
+    ]
+  },
+  "PUFTM038290": {
+    "descripcion": "PUERTA AJUSTABLE 90x210cm",
+    "procesos": [
+      "Arborit",
+      "MAQUINADO"
+    ]
+  },
+  "PUFTMS38070": {
+    "descripcion": "PUERTA AJUSTABLE 70x235cm",
+    "procesos": [
+      "Arborit",
+      "MAQUINADO"
+    ]
+  },
+  "PUFTMS38080": {
+    "descripcion": "PUERTA AJUSTABLE 80x235cm",
+    "procesos": [
+      "Arborit",
+      "MAQUINADO"
+    ]
+  },
+  "PUFTMS38090": {
+    "descripcion": "PUERTA AJUSTABLE 90x235cm",
+    "procesos": [
+      "Arborit",
+      "MAQUINADO"
+    ]
+  },
+  "PUMNM042070": {
+    "descripcion": "PUERTA AJUSTABLE  70x225cm",
+    "procesos": [
+      "Arborit",
+      "MAQUINADO"
+    ]
+  },
+  "PUMNM042080": {
+    "descripcion": "PUERTA AJUSTABLE  80x225cm",
+    "procesos": [
+      "Arborit",
+      "MAQUINADO"
+    ]
+  },
+  "PUMNM042090": {
+    "descripcion": "PUERTA AJUSTABLE  90x225cm",
+    "procesos": [
+      "Arborit",
+      "MAQUINADO"
+    ]
+  },
+  "PUMNM042270": {
+    "descripcion": "PUERTA AJUSTABLE  70x210cm",
+    "procesos": [
+      "Arborit",
+      "MAQUINADO"
+    ]
+  },
+  "PUMNM042280": {
+    "descripcion": "PUERTA AJUSTABLE  80x210cm",
+    "procesos": [
+      "Arborit",
+      "MAQUINADO"
+    ]
+  },
+  "PUMNM042290": {
+    "descripcion": "PUERTA AJUSTABLE  90x210cm",
+    "procesos": [
+      "Arborit",
+      "MAQUINADO"
+    ]
+  },
+  "PUMNMS42070": {
+    "descripcion": "PUERTA AJUSTABLE 70x235cm",
+    "procesos": [
+      "Arborit",
+      "MAQUINADO"
+    ]
+  },
+  "PUMNMS42080": {
+    "descripcion": "PUERTA AJUSTABLE 80x235cm",
+    "procesos": [
+      "Arborit",
+      "MAQUINADO"
+    ]
+  },
+  "PUMNMS42090": {
+    "descripcion": "PUERTA AJUSTABLE 90x235cm",
+    "procesos": [
+      "Arborit",
+      "MAQUINADO"
+    ]
+  },
+  "MAMLEN59840": {
+    "descripcion": "MARCO MELAMINA 8x240cm C45(24mm)",
+    "procesos": [
+      "MAQUINADO",
+      "EMPAQUE"
+    ]
+  },
+  "MAMLEN09840": {
+    "descripcion": "MARCO MELAMINA 8x240cm C40(24mm)",
+    "procesos": [
+      "MAQUINADO",
+      "EMPAQUE"
     ]
   }
 }

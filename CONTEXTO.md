@@ -1,7 +1,7 @@
 # Proyecto: Generador de Órdenes de Producción (OPP)
 
 ## Resumen
-Aplicación web en Python/Flask que automatiza la generación de OPPs a partir de un Excel de entrada, produciendo dos archivos de salida: uno para carga en ERP (Generic/Siesa) y otro para impresión de stickers (Bartender).
+Aplicación web en Python/Flask que automatiza la generación de OPPs a partir de un Excel de entrada, produciendo el archivo `OPP's_jumbo.xlsx` para carga en ERP (Generic/Siesa). Actualmente operativo para el tipo **Stock**; tipos RQ y SP están pendientes de implementación.
 
 ---
 
@@ -10,6 +10,7 @@ Aplicación web en Python/Flask que automatiza la generación de OPPs a partir d
 |---|---|
 | Backend | Python 3.14 + Flask 3.1.3 |
 | Procesamiento Excel | openpyxl 3.1.x |
+| Base de datos | Firebase Realtime Database (proyecto: picking-d3107) |
 | Servidor producción | Gunicorn 26.0.0 |
 | Frontend | Bootstrap 5.3 + Bootstrap Icons + DM Sans (Google Fonts) |
 | Deploy | Render (plan gratuito) |
@@ -23,6 +24,7 @@ Aplicación web en Python/Flask que automatiza la generación de OPPs a partir d
 | GitHub usuario | asistentelogistica2-maker |
 | Repositorio | https://github.com/asistentelogistica2-maker/Opps-Control-Piso |
 | App en producción | https://opps-control-piso.onrender.com |
+| Firebase DB | https://picking-d3107-default-rtdb.firebaseio.com |
 | Email cuenta | asistente.logistica2@gmail.com |
 
 ---
@@ -33,35 +35,38 @@ Proyecto Control Piso OPP/
 ├── app.py                        ← Flask: rutas y lógica web
 ├── Procfile                      ← Render: web: gunicorn app:app
 ├── requirements.txt              ← Dependencias con versiones exactas
-├── .env                          ← Variables locales (no se sube a GitHub)
+├── firebase-credentials.json     ← Credenciales Firebase LOCAL (no sube a GitHub)
+├── .env                          ← Variables locales (no sube a GitHub)
 ├── .gitignore
-├── README.md
 │
 ├── logic/
 │   ├── __init__.py
-│   ├── generator.py              ← Motor de generación de OPPs
-│   └── excel_io.py               ← Lectura/escritura de Excel (BytesIO)
+│   ├── generator.py              ← Motor de generación + load_referencias_stock()
+│   ├── excel_io.py               ← Lectura/escritura Excel, templates, lookup referencias
+│   └── firebase_db.py            ← Conexión Firebase RTDB (load/save estructura y referencias)
 │
 ├── templates/
 │   ├── base.html                 ← Layout base: header sticky, design system Inter Doors
-│   ├── index.html                ← Página principal (carga + opciones)
-│   ├── resultados.html           ← Vista previa + descarga de archivos
-│   └── estructura.html           ← CRUD de estructura productiva
+│   ├── index.html                ← Página principal (tipo OPP + carga archivo)
+│   ├── resultados.html           ← Vista previa tabla OPPs + botón descarga jumbo
+│   └── estructura.html           ← Gestión de Referencias Productivas
 │
 ├── static/
 │   └── img/
-│       ├── favicon.png           ← Favicon de la app
+│       ├── favicon.png
 │       ├── LOGO_ID.png           ← Logo Inter Doors (navbar)
-│       ├── Diagrama de Proceso Control Piso.png
-│       ├── Preview Generacion de OPP.png
-│       └── Preview Generacion de OPP 2.png
+│       └── ISOTIPO-INTERDOORS-POSITIVO.png
 │
-├── config/
-│   └── estructura.json           ← Mapa referencia → procesos (persistente en git)
-│
-└── data/
-    └── opp_counter.json          ← Contador secuencial de OPPs
+└── config/
+    └── estructura.json           ← Fallback local (no usado en producción, Firebase es fuente)
 ```
+
+---
+
+## Credenciales Firebase
+- **Producción (Render):** variable de entorno `FIREBASE_CREDENTIALS` con el JSON completo del service account.
+- **Local:** archivo `firebase-credentials.json` en la raíz del proyecto (en `.gitignore`).
+- El código detecta automáticamente cuál usar (`firebase_db.py → _init()`).
 
 ---
 
@@ -70,104 +75,99 @@ Proyecto Control Piso OPP/
 |---|---|---|
 | GET | `/` | Página principal con formulario |
 | POST | `/generar` | Procesa Excel y genera OPPs |
-| GET | `/descargar/<token>/<tipo>` | Descarga Excel ERP o Stickers |
-| GET | `/plantilla` | Descarga plantilla de entrada |
-| GET | `/estructura` | Ver/gestionar estructura productiva |
-| POST | `/estructura/guardar` | Crear o editar una referencia |
-| POST | `/estructura/eliminar` | Eliminar una referencia |
+| GET | `/descargar/<token>/jumbo` | Descarga `OPP's_jumbo.xlsx` |
+| GET | `/plantilla` | Descarga plantilla de entrada (Fecha/Referencia/Color/Cantidad) |
+| GET | `/estructura` | Ver/gestionar Referencias Productivas |
+| GET | `/referencias/plantilla` | Descarga template unificado de 14 columnas |
+| POST | `/referencias/importar` | Importa referencias desde Excel a Firebase |
 
 ---
 
-## Lógica de negocio
+## Lógica de negocio — Stock
 
 ### Flujo principal
-1. Usuario selecciona **Tipo de OPP** (Stock / RQ / SP)
-2. Sube Excel con columnas: `Cliente, Referencia, Cantidad, Notas del ítem, Notas generales`
-3. El sistema busca cada referencia en `estructura.json`
-4. Por cada proceso en la ruta de producción → genera una OPP con número secuencial
-5. Solo el **último proceso** genera stickers (cantidad = número de piezas del ítem)
-6. Genera dos Excel en memoria (BytesIO) y los ofrece para descarga
+1. Usuario selecciona **Stock** (RQ y SP deshabilitados — próximamente)
+2. Sube Excel con columnas: `Fecha · Referencia · Color · Cantidad`
+3. El sistema busca cada fila en Firebase por clave `REFERENCIA|COLOR`
+4. Si col **Proceso 1** (H) tiene letra Y col **Proceso 2** (J) también → genera **2 OPPs**
+5. Si solo col **Proceso 1** tiene letra → genera **1 OPP**
+6. El consecutivo de OPPs arranca desde 1 en cada generación (el ERP asigna el número definitivo)
+7. Genera `OPP's_jumbo.xlsx` en memoria y lo ofrece para descarga
 
-### Regla de stickers por tipo de OPP
-- **Stock**: los stickers ya existen como imágenes en Google Drive (pre-fabricados). La opción de generar stickers se **deshabilita automáticamente** en el formulario cuando se selecciona Stock. Pendiente: conectar link de carpeta Drive.
-- **RQ / SP**: se generan stickers normalmente en Excel para Bartender.
-- Cantidad de stickers = cantidad del ítem. Formato de pieza: `1/5`, `2/5`, `3/5`...
+### Mapeo `OPP's_jumbo.xlsx`
 
-### Estructura productiva
-Almacenada en `config/estructura.json`:
-```json
-{
-  "REF001": {
-    "descripcion": "Nombre del producto",
-    "procesos": ["Corte", "Costura", "Terminado", "Empaque"]
-  }
+**Hoja Documentos** (una fila por OPP):
+| Columna | Valor |
+|---|---|
+| CONSECUTIVO DCTO | Número OPP (1, 2, 3...) |
+| FECHA AAAAMMDD | Fecha del día en que se genera el archivo |
+| PLANIFICADOR | `71226229` (fijo) |
+| REF1 | Letra Proceso 1 (col H) si es OPP1 / Letra Proceso 2 (col J) si es OPP2 |
+| REF2 | Col J (REF2) — igual en ambas OPPs |
+| REF3 | Vacío |
+| NOTAS | Notas Proceso 1 (col M) si es OPP1 / Notas Proceso 2 (col N) si es OPP2 |
+
+**Hoja Items** (una fila por OPP):
+| Columna | Valor |
+|---|---|
+| NUMERO DCTO | Mismo número OPP |
+| REGISTRO MVTO | Consecutivo de ítems por documento (1, 2, 3...) |
+| REFERENCIA | Col B (Referencia PRD) si OPP1 con 2 OPPs / Col A en los demás casos |
+| EXT1 | Col E (Color #) |
+| EXT2 | Col F (Medida) |
+| U.M | Col G (Unidad de medida) |
+| CANT PLANEADA | Cantidad del input |
+| FECHA INICIO | Fecha del input si OPP1 / Fecha input + 2 días si OPP2 |
+| FECHA TERMINACION | Igual que FECHA INICIO según OPP |
+| METODO LISTA | `0001` (texto) |
+| METODO RUTA | `0001` (texto) |
+| MEDIDA REAL | Vacío |
+| BODEGA | Vacío |
+
+---
+
+## Referencias Productivas (Firebase)
+
+### Estructura en Firebase
+Nodo `/estructura`. Entradas con `|` en la clave son referencias productivas:
+```
+"PUDT0260|CEDRO SIL": {
+  "referencia_a": "PUDT0260",
+  "referencia_b": "PUDC0260",
+  "descripcion": "PUERTA DEKO 60x200 cm",
+  "color": "CEDRO SIL",
+  "color_num": 284,
+  "medida": "STD",
+  "um": "UNI",
+  "ref1": "A",
+  "nombre_proceso1": "Arborit",
+  "ref2_i": "E",
+  "nombre_proceso2": "Empaque",
+  "ref2_j": "STOCK",
+  "notas1": "TODAS VAN A 2 MTS...",
+  "notas2": "TODAS VAN A 2 MTS..."
 }
 ```
-> ⚠️ Cambios hechos desde la web se pierden al redesplegar. Para persistirlos: descargar el JSON, reemplazar `config/estructura.json` en el repo y hacer push.
 
----
-
-## Tipos de OPP disponibles
-| Tipo | Descripción | Stickers |
+### Template Excel unificado (14 columnas)
+| Col | Nombre | Descripción |
 |---|---|---|
-| Stock | Producción para inventario | Desde Google Drive (imágenes pre-hechas) |
-| RQ | Requisición de cliente | Se generan en Excel (Bartender) |
-| SP | Servicio / Proyecto | Se generan en Excel (Bartender) |
+| A | Referencia | Código referencia (ej: PUDT0260) |
+| B | Referencia PRD | Código producción (ej: PUDC0260) |
+| C | Descripción | Nombre del producto |
+| D | Color | Nombre del color |
+| E | Color # | Código numérico del color |
+| F | Medida | Medida estándar |
+| G | U.M | Unidad de medida |
+| H | Proceso 1 | Letra del primer proceso (A, M, E...) |
+| I | Nombre Proceso 1 | Nombre completo (informativo) |
+| J | Proceso 2 | Letra del segundo proceso (vacío si solo 1 OPP) |
+| K | Nombre Proceso 2 | Nombre completo (informativo) |
+| L | REF2 | Valor columna REF2 del ERP |
+| M | Notas Proceso 1 | Instrucciones OPP1 |
+| N | Notas Proceso 2 | Instrucciones OPP2 |
 
----
-
-## Salidas generadas
-
-### Excel ERP (`OPP_ERP.xlsx`) — formato Siesa/Generic
-
-> **Esquema maestro-detalle (header-detail):** relación 1:N entre hojas.
-> - **Hoja 1 – Cabecera (maestro):** una fila por pedido. `ID_Orden` es clave primaria.
-> - **Hoja 2 – Líneas (detalle):** una fila por ítem. `ID_Orden` referencia al maestro; `ID_Linea` es consecutivo propio de cada ítem (clave primaria del detalle).
-
-**Hoja 1: Documentos (maestro)**
-| ID_Orden | CONSECUTIVO DCTO | FECHA AAAAMMDD | PLANIFICADOR | REF1 | REF2 | REF3 | NOTAS |
-| Clave primaria | OPP número | Fecha hoy | *(pendiente)* | Cliente | *(pendiente)* | *(pendiente)* | Notas generales |
-
-**Hoja 2: Items (detalle)**
-| ID_Orden | ID_Linea | NUMERO DCTO | REGISTRO MVTO | REFERENCIA | EXT1 | EXT2 | U.M | CANT PLANEADA | FECHA INICIO | FECHA TERMINACION | METODO LISTA | METODO RUTA | MEDIDA REAL | BODEGA |
-| FK → maestro | Consecutivo ítem | OPP número | *(pendiente)* | Referencia | *(pendiente)* | *(pendiente)* | *(pendiente)* | Cantidad | *(pendiente)* | *(pendiente)* | *(pendiente)* | Proceso | Notas ítem | *(pendiente)* |
-
-> Las columnas marcadas *(pendiente)* quedan vacías hasta confirmar el mapeo con el ERP.
-
-### Excel Stickers (`OPP_Stickers.xlsx`) — solo para RQ y SP
-| Cliente | Numero de documento | Medida real | Numero de pieza | Cantidad |
-
-### PDF Stickers (`stickers.pdf`) — reemplaza Excel
-El archivo Excel de stickers ha sido reemplazado por generación en PDF con especificaciones precisas:
-
-**Características**:
-- **Dimensiones exactas**: 100mm × 25mm (una página por sticker)
-- **Layout profesional**: 4 zonas (Logo | Info | Pieza | QR)
-  - Logo (0-21mm): ISOTIPO-INTERDOORS-POSITIVO.png centrado + divisor gris
-  - Info (21-66mm): Cliente, doc, medida con divisores y acento negro
-  - Pieza (66-80mm): Número de pieza (ej: 1/15) centrado
-  - QR (80-100mm): Código automático `Interdoors|cliente|doc|medida|pieza`
-- **Generación en tiempo real**: Desde Flask sin escritura a disco
-- **Descarga directa**: Botón "Descargar Stickers" en resultados
-
-**Integración en app.py** (~línea 58-74):
-1. Se reciben `sticker_rows` de `generate_opps()`
-2. Se convierten al formato requerido (cliente, doc, medida, pieza)
-3. Se llama `export_stickers_from_orders(stickers_data, temp_pdf)`
-4. El PDF se cachea en memoria (_cache) para descarga
-
-```python
-# Convertir formato
-stickers_data = [{
-    'cliente': row['Cliente'],
-    'doc': str(row['Numero de documento']),
-    'medida': row['Medida real'],
-    'pieza': row['Numero de pieza']
-} for row in sticker_rows]
-
-# Generar PDF
-export_stickers_from_orders(stickers_data, temp_pdf)
-```
+> Las claves en Firebase se sanitizan: caracteres `$ # [ ] / .` se reemplazan por `-`.
 
 ---
 
@@ -184,66 +184,51 @@ Implementado en `templates/base.html` vía CSS custom properties:
 --surface: #FFFFFF    /* cards */
 --yellow: #F3C615     /* amarillo primario (CTAs, activo) */
 --yellow-mid: #C9A500 /* amarillo texto sobre fondo claro */
---yellow-pale: #FBF5D6/* fondo hover sutil */
---teal: #0C8E82       /* acento verde (stickers) */
---navy: #323957       /* acento azul (ERP) */
+--navy: #323957       /* acento azul */
+--teal: #0C8E82       /* acento verde */
 ```
 
 ### Header (sticky, 64px)
 - **Izquierda**: Logo `LOGO_ID.png`
 - **Centro**: Título de página en uppercase gris
-- **Derecha**: Tabs con subrayado amarillo en activo (Inicio · Estructura)
-- Fondo: `surface-2` (#E8E6E1), sombra inferior
-
-### Comportamiento UI notable
-- Tipo OPP **Stock** → toggle Stickers se apaga y bloquea automáticamente (JS)
-- Botón "Descargar plantilla" vive dentro del bloque Tipo de OPP
-- Estructura Productiva solo accesible desde el header (no en inicio)
-- Tab Stickers en resultados: solo conteo + botón descarga (sin tabla detallada)
+- **Derecha**: Tabs con subrayado amarillo en activo (Inicio · Referencias)
 
 ---
 
 ## Flujo de trabajo (desarrollo continuo)
 ```bash
-# 1. Correr localmente
+# 1. Correr localmente (requiere firebase-credentials.json en raíz)
 venv\Scripts\python app.py
 # Abrir: http://127.0.0.1:5000
 
-# 2. Cuando los cambios están listos
-git add .
-git commit -m "descripción del cambio"
+# 2. Subir cambios
+git add <archivos>
+git commit -m "descripción"
 git push
-# Render detecta el push y redespliega automáticamente (~2 min)
+# Render detecta el push y redespliega (~2 min)
 ```
 
 ---
 
 ## Estado actual del proyecto
 - [x] Estructura base Flask + Render configurada
-- [x] Lógica de generación de OPPs (generator.py)
-- [x] Lectura/escritura Excel en memoria (sin archivos locales)
-- [x] UI con design system Inter Doors (DM Sans, tokens corporativos)
-- [x] Header sticky profesional (logo + título centrado + tabs)
-- [x] Selector de tipo de OPP (Stock / RQ / SP) con hover amarillo
-- [x] Stock deshabilita stickers automáticamente
-- [x] Plantilla Excel dentro del bloque Tipo de OPP
-- [x] CRUD de estructura productiva desde el header
-- [x] Excel ERP con 2 hojas (Documentos + Items) — formato Siesa
-- [x] Descarga directa de Excel generados
-- [x] Favicon y logo en static/img/
-- [x] **Stickers en PDF** (reemplazó Excel) - 100mm×25mm, QR automático, multi-zona
-- [ ] Mapeo completo de columnas ERP (pendiente confirmar con ERP)
-- [ ] Link Google Drive stickers Stock (pendiente tener imágenes)
-- [ ] Mostrar imagen sticker desde Drive en resultados (Stock)
-- [ ] Persistencia de estructura productiva (base de datos o env var)
-- [ ] Autenticación / login
+- [x] Firebase Realtime Database como persistencia (reemplazó JSON locales)
+- [x] Lógica Stock: lookup por Referencia+Color, genera 1 o 2 OPPs según columnas H/J
+- [x] Salida `OPP's_jumbo.xlsx` con mapeo completo de columnas ERP
+- [x] Consecutivo OPP inicia desde 1 por generación (ERP asigna número real)
+- [x] UI con design system Inter Doors
+- [x] Selector tipo OPP (Stock activo / RQ y SP próximamente)
+- [x] Plantilla entrada: Fecha · Referencia · Color · Cantidad
+- [x] Referencias Productivas: template 14 cols, importación masiva a Firebase
+- [x] Tabla referencias muestra nombre completo de procesos
+- [ ] Implementar lógica RQ
+- [ ] Implementar lógica SP
 - [ ] Historial de OPPs generadas
 
 ---
 
 ## Notas importantes
 - **Render plan gratuito:** hiberna el servicio tras 15 min sin uso. Primera carga puede demorar ~30 seg.
-- **Archivos generados:** se guardan en memoria. Si el servidor reinicia, los links de descarga dejan de funcionar (hay que generar de nuevo).
-- **Contador OPP:** `data/opp_counter.json` se resetea con cada nuevo deploy en Render.
-- **Puerto local:** Flask corre en `5000`. Si hay conflicto de puerto, matar procesos con `netstat -ano | findstr :5000`.
-- **Columnas ERP pendientes:** PLANIFICADOR, REF2, REF3, REGISTRO MVTO, EXT1, EXT2, U.M, FECHA INICIO, FECHA TERMINACION, METODO LISTA, BODEGA — quedan vacías hasta confirmar mapeo.
+- **Archivos generados:** se guardan en memoria (`_cache`). Si el servidor reinicia, los links de descarga dejan de funcionar (hay que generar de nuevo).
+- **Firebase gratuito (Render):** la base de datos de Render expira en 90 días. Los datos están en Firebase que es permanente.
+- **Puerto local:** Flask corre en `5000`. Si hay conflicto: `netstat -ano | findstr :5000`.
