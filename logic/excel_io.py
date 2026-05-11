@@ -98,6 +98,8 @@ def _auto_width(ws):
 
 
 def write_jumbo_excel(opp_list, target):
+    from datetime import date
+    today = date.today().strftime("%Y%m%d")
     wb = openpyxl.Workbook()
 
     # --- Hoja Documentos ---
@@ -110,7 +112,7 @@ def write_jumbo_excel(opp_list, target):
     _apply_headers(ws_doc, doc_headers, "1F4E79")
     for r, opp in enumerate(opp_list, 2):
         ws_doc.cell(row=r, column=1, value=opp["opp"])
-        ws_doc.cell(row=r, column=2, value=opp["fecha"])
+        ws_doc.cell(row=r, column=2, value=today)
         ws_doc.cell(row=r, column=3, value=opp["planificador"])
         ws_doc.cell(row=r, column=4, value=opp["ref1"])
         ws_doc.cell(row=r, column=5, value=opp["ref2"])
