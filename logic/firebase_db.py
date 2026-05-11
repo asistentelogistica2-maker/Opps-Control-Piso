@@ -1,5 +1,6 @@
 import json
 import os
+from pathlib import Path
 
 import firebase_admin
 from firebase_admin import credentials, db as rtdb
@@ -7,6 +8,7 @@ from firebase_admin import credentials, db as rtdb
 _app = None
 
 DATABASE_URL = 'https://picking-d3107-default-rtdb.firebaseio.com'
+_LOCAL_CRED_FILE = Path(__file__).parent.parent / 'firebase-credentials.json'
 
 
 def _init():
@@ -14,6 +16,8 @@ def _init():
     if _app is not None:
         return True
     creds_json = os.environ.get('FIREBASE_CREDENTIALS')
+    if not creds_json and _LOCAL_CRED_FILE.exists():
+        creds_json = _LOCAL_CRED_FILE.read_text(encoding='utf-8')
     if not creds_json:
         return False
     try:
@@ -26,7 +30,7 @@ def _init():
 
 
 def is_available():
-    return bool(os.environ.get('FIREBASE_CREDENTIALS'))
+    return bool(os.environ.get('FIREBASE_CREDENTIALS')) or _LOCAL_CRED_FILE.exists()
 
 
 def load_estructura():
