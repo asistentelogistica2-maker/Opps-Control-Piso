@@ -86,9 +86,13 @@
               <span class="badge rounded-pill px-3" style="background:var(--surface-2);color:var(--ink);">{{ parts[1] if parts|length > 1 else '' }}</span>
             </td>
             <td class="py-3" style="color:var(--ink-2);font-size:.9rem;">{{ data.descripcion or '—' }}</td>
-            <td class="py-3"><span class="badge-proc">{{ data.ref1 or '—' }}</span></td>
             <td class="py-3">
-              {% if data.ref2_i %}<span class="badge-proc">{{ data.ref2_i }}</span>{% else %}—{% endif %}
+              <span class="badge-proc">{{ data.nombre_proceso1 or data.ref1 or '—' }}</span>
+            </td>
+            <td class="py-3">
+              {% if data.ref2_i %}
+                <span class="badge-proc">{{ data.nombre_proceso2 or data.ref2_i }}</span>
+              {% else %}—{% endif %}
             </td>
             <td class="py-3" style="color:var(--ink-3);font-size:.88rem;">{{ data.ref2_j or '—' }}</td>
           </tr>
