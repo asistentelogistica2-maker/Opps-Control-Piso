@@ -126,9 +126,12 @@ def write_jumbo_excel(opp_list, target):
         "METODO LISTA", "METODO RUTA", "MEDIDA REAL", "BODEGA",
     ]
     _apply_headers(ws_items, item_headers, "1F4E79")
+    item_counter = {}
     for r, opp in enumerate(opp_list, 2):
-        ws_items.cell(row=r, column=1, value=opp["opp"])
-        ws_items.cell(row=r, column=2, value=opp["opp"])
+        doc = opp["opp"]
+        item_counter[doc] = item_counter.get(doc, 0) + 1
+        ws_items.cell(row=r, column=1, value=doc)
+        ws_items.cell(row=r, column=2, value=item_counter[doc])
         ws_items.cell(row=r, column=3, value=opp["referencia_item"])
         ws_items.cell(row=r, column=4, value=opp["ext1"])
         ws_items.cell(row=r, column=5, value=opp["ext2"])
