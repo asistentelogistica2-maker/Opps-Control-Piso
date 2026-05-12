@@ -173,7 +173,7 @@ def write_jumbo_excel(opp_list, target):
         c_ruta = ws_items.cell(row=r, column=11, value="0001")
         c_ruta.number_format = "@"
         ws_items.cell(row=r, column=12, value="")
-        ws_items.cell(row=r, column=13, value="")
+        ws_items.cell(row=r, column=13, value=opp.get("bodega", ""))
     _auto_width(ws_items)
 
     wb.save(target)

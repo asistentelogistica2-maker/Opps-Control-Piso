@@ -146,7 +146,7 @@ def generate_opps_stock(input_rows, referencias_lookup):
         opp_list.append({
             "opp": opp_num1,
             "fecha": fecha_str,
-            "planificador": "71226229",
+            "planificador": "71364487",
             "ref1": ref_data["ref1"],
             "ref2": ref_data["ref2_j"],
             "notas": ref_data["notas1"],
@@ -157,6 +157,7 @@ def generate_opps_stock(input_rows, referencias_lookup):
             "cantidad": cantidad,
             "fecha_inicio": fecha_str,
             "fecha_fin": fecha_str,
+            "bodega": "80123",
         })
 
         if tiene_dos:
@@ -165,7 +166,7 @@ def generate_opps_stock(input_rows, referencias_lookup):
             opp_list.append({
                 "opp": opp_num2,
                 "fecha": fecha_str,
-                "planificador": "71226229",
+                "planificador": "71364487",
                 "ref1": ref_data["ref2_i"],
                 "ref2": ref_data["ref2_j"],
                 "notas": ref_data["notas2"],
@@ -176,6 +177,7 @@ def generate_opps_stock(input_rows, referencias_lookup):
                 "cantidad": cantidad,
                 "fecha_inicio": fecha_mas2,
                 "fecha_fin": fecha_mas2,
+                "bodega": "80106",
             })
 
     return opp_list, errors
