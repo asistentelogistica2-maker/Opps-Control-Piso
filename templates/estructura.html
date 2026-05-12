@@ -2,24 +2,70 @@
 {% block title %}Referencias — Generador OPP{% endblock %}
 {% block page_label %}Referencias{% endblock %}
 
+{% block head %}
+<style>
+  .badge-ref {
+    display: inline-flex; align-items: center; gap: 5px;
+    background: var(--ink); color: #fff;
+    font-size: .78rem; font-weight: 700; letter-spacing: .02em;
+    border-radius: 20px; padding: .28em .8em; white-space: nowrap;
+  }
+  .badge-ref-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--yellow); flex-shrink: 0;
+  }
+  .badge-color-pill {
+    background: var(--surface); border: 1.5px solid var(--line);
+    color: var(--ink-2); font-size: .78rem; font-weight: 500;
+    border-radius: 20px; padding: .25em .75em; white-space: nowrap;
+  }
+  .badge-proc-dyn {
+    font-size: .78rem; font-weight: 600;
+    border-radius: 20px; padding: .27em .75em; white-space: nowrap;
+    display: inline-block;
+  }
+  /* Pagination */
+  .pagination .page-link {
+    background: var(--surface); border-color: var(--line);
+    color: var(--ink-2); font-size: .82rem;
+    border-radius: 8px !important; margin: 0 2px;
+    min-width: 32px; text-align: center;
+    transition: background .15s, border-color .15s, color .15s;
+  }
+  .pagination .page-item.active .page-link {
+    background: var(--ink); border-color: var(--ink); color: #fff; font-weight: 700;
+  }
+  .pagination .page-link:hover {
+    background: var(--yellow-pale); border-color: var(--yellow-mid); color: var(--ink);
+  }
+  .pagination .page-item.disabled .page-link {
+    background: var(--bg); color: var(--ink-4); border-color: var(--line);
+  }
+  /* Filter bar */
+  .filter-bar .input-group-text {
+    background: var(--bg); border-right: none; border-color: var(--line); color: var(--ink-3);
+  }
+  .filter-bar .form-control { border-left: none; }
+  .filter-bar .form-select { width: auto; min-width: 115px; }
+</style>
+{% endblock %}
+
 {% block content %}
 
 <div class="d-flex align-items-center justify-content-between mb-3">
   <div>
-    <h4 class="fw-bold mb-1" style="color:var(--navy)">
-      <i class="bi bi-table me-2"></i>Referencias Productivas
+    <h4 class="fw-bold mb-1">
+      <i class="bi bi-grid-fill me-2" style="color:var(--yellow-mid)"></i>Referencias Productivas
     </h4>
-    <p class="text-muted mb-0">Referencias con color, procesos y datos para generación de OPPs.</p>
+    <p class="text-muted mb-0 small">Referencias con color, procesos y datos para generación de OPPs.</p>
   </div>
-  {% if referencias %}
   <button class="btn btn-sm btn-plantilla px-3" data-bs-toggle="collapse" data-bs-target="#panelReferencias">
-    <i class="bi bi-arrow-repeat me-1"></i>Actualizar referencias
+    <i class="bi bi-arrow-repeat me-1"></i>{% if referencias %}Actualizar referencias{% else %}Importar referencias{% endif %}
   </button>
-  {% endif %}
 </div>
 
 <!-- Panel importar -->
-<div class="collapse mb-4" id="panelReferencias">
+<div class="collapse {% if not referencias %}show{% endif %} mb-4" id="panelReferencias">
   <div class="card border-0 shadow-sm">
     <div class="card-header d-flex align-items-center justify-content-between py-3 px-4"
          style="background:var(--surface-2);border-bottom:1px solid var(--line);">
@@ -56,49 +102,62 @@
   </div>
 </div>
 
-<!-- Tabla referencias -->
 {% if referencias %}
+
+<!-- Search + filter bar -->
+<div class="card mb-3">
+  <div class="card-body py-3 px-4">
+    <div class="d-flex gap-2 align-items-center flex-wrap filter-bar">
+      <div style="flex:1;min-width:200px;">
+        <div class="input-group">
+          <span class="input-group-text"><i class="bi bi-search"></i></span>
+          <input type="text" id="searchInput" class="form-control"
+                 placeholder="Buscar referencia, color o descripción...">
+        </div>
+      </div>
+      <select id="filterProceso" class="form-select">
+        <option value="">Proceso</option>
+      </select>
+      <select id="filterColor" class="form-select">
+        <option value="">Color</option>
+      </select>
+      <select id="filterTipo" class="form-select">
+        <option value="">Tipo</option>
+        <option value="1">1 OPP</option>
+        <option value="2">2 OPPs</option>
+      </select>
+    </div>
+  </div>
+</div>
+
+<!-- Table -->
 <div class="card">
   <div class="card-body p-0">
     <div class="table-responsive">
       <table class="table table-hover mb-0 align-middle">
-        <thead style="background:#f8fafc;">
+        <thead style="background:var(--surface-2);">
           <tr>
-            <th class="ps-4 py-3" style="color:#64748b;font-size:.82rem;">REFERENCIA</th>
-            <th class="py-3" style="color:#64748b;font-size:.82rem;">COLOR</th>
-            <th class="py-3" style="color:#64748b;font-size:.82rem;">DESCRIPCIÓN</th>
-            <th class="py-3" style="color:#64748b;font-size:.82rem;">PROCESO 1</th>
-            <th class="py-3" style="color:#64748b;font-size:.82rem;">PROCESO 2</th>
-            <th class="py-3" style="color:#64748b;font-size:.82rem;">REF2</th>
+            <th class="ps-4 py-3" style="color:var(--ink-3);font-size:.78rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;border-bottom:1px solid var(--line);">Referencia</th>
+            <th class="py-3"     style="color:var(--ink-3);font-size:.78rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;border-bottom:1px solid var(--line);">Color</th>
+            <th class="py-3"     style="color:var(--ink-3);font-size:.78rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;border-bottom:1px solid var(--line);">Descripción</th>
+            <th class="py-3"     style="color:var(--ink-3);font-size:.78rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;border-bottom:1px solid var(--line);">Proceso 1</th>
+            <th class="py-3"     style="color:var(--ink-3);font-size:.78rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;border-bottom:1px solid var(--line);">Proceso 2</th>
+            <th class="py-3"     style="color:var(--ink-3);font-size:.78rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;border-bottom:1px solid var(--line);">REF2</th>
           </tr>
         </thead>
-        <tbody>
-          {% for key, data in referencias.items() %}
-          {% set parts = key.split('|') %}
-          <tr>
-            <td class="ps-4 py-3">
-              <span class="badge rounded-pill fs-6 px-3" style="background:var(--ink)">{{ parts[0] }}</span>
-            </td>
-            <td class="py-3">
-              <span class="badge rounded-pill px-3" style="background:var(--surface-2);color:var(--ink);">{{ parts[1] if parts|length > 1 else '' }}</span>
-            </td>
-            <td class="py-3" style="color:var(--ink-2);font-size:.9rem;">{{ data.descripcion or '—' }}</td>
-            <td class="py-3">
-              <span class="badge-proc">{{ data.nombre_proceso1 or data.ref1 or '—' }}</span>
-            </td>
-            <td class="py-3">
-              {% if data.ref2_i %}
-                <span class="badge-proc">{{ data.nombre_proceso2 or data.ref2_i }}</span>
-              {% else %}—{% endif %}
-            </td>
-            <td class="py-3" style="color:var(--ink-3);font-size:.88rem;">{{ data.ref2_j or '—' }}</td>
-          </tr>
-          {% endfor %}
-        </tbody>
+        <tbody id="refTableBody"></tbody>
       </table>
     </div>
   </div>
+  <div class="d-flex align-items-center justify-content-between px-4 py-3"
+       style="border-top:1px solid var(--line);background:var(--surface);border-radius:0 0 14px 14px;">
+    <span id="paginationInfo" style="color:var(--ink-3);font-size:.83rem;"></span>
+    <nav aria-label="Paginación">
+      <ul class="pagination pagination-sm mb-0" id="paginationControls"></ul>
+    </nav>
+  </div>
 </div>
+
 {% else %}
 <div class="card">
   <div class="card-body text-center py-5 text-muted">
@@ -111,4 +170,152 @@
 </div>
 {% endif %}
 
+{% endblock %}
+
+{% block scripts %}
+{% if referencias %}
+<script>
+const REFERENCIAS = {{ referencias | tojson }};
+const PER_PAGE = 8;
+let filtered = [];
+let currentPage = 1;
+
+const PROC_COLORS = [
+  { bg: '#FBF5D6', fg: '#B8860B' },
+  { bg: '#D0F2EE', fg: '#0C8E82' },
+  { bg: '#DDEAF8', fg: '#1D5FA8' },
+  { bg: '#EDE7F6', fg: '#6B46C1' },
+  { bg: '#FFF3E0', fg: '#C4621A' },
+  { bg: '#E8F5E9', fg: '#2D8C5C' },
+  { bg: '#FCE4EC', fg: '#C62828' },
+  { bg: '#E8EAF6', fg: '#3949AB' },
+];
+const procColorCache = {};
+
+function getProcColor(name) {
+  const key = (name || '').toUpperCase().trim();
+  if (!key) return null;
+  if (procColorCache[key] !== undefined) return procColorCache[key];
+  let h = 0;
+  for (let i = 0; i < key.length; i++) h = (h * 31 + key.charCodeAt(i)) & 0xFFFF;
+  procColorCache[key] = PROC_COLORS[h % PROC_COLORS.length];
+  return procColorCache[key];
+}
+
+function procBadge(name) {
+  if (!name) return '<span style="color:var(--ink-4)">—</span>';
+  const c = getProcColor(name);
+  return `<span class="badge-proc-dyn" style="background:${c.bg};color:${c.fg};">${name}</span>`;
+}
+
+const entries = Object.entries(REFERENCIAS).map(([key, d]) => {
+  const parts = key.split('|');
+  return {
+    ref:        parts[0] || '',
+    color:      parts[1] || d.color || '',
+    descripcion: d.descripcion || '',
+    p1:         d.nombre_proceso1 || d.ref1 || '',
+    p2:         d.ref2_i ? (d.nombre_proceso2 || d.ref2_i) : '',
+    ref2:       d.ref2_j || '',
+    dos:        !!(d.ref2_i && String(d.ref2_i).trim()),
+  };
+});
+
+function populateFilters() {
+  const procSet = new Set(), colorSet = new Set();
+  entries.forEach(e => {
+    if (e.p1) procSet.add(e.p1);
+    if (e.p2) procSet.add(e.p2);
+    if (e.color) colorSet.add(e.color);
+  });
+  const fp = document.getElementById('filterProceso');
+  [...procSet].sort().forEach(p => { const o = document.createElement('option'); o.value = o.textContent = p; fp.appendChild(o); });
+  const fc = document.getElementById('filterColor');
+  [...colorSet].sort().forEach(c => { const o = document.createElement('option'); o.value = o.textContent = c; fc.appendChild(o); });
+}
+
+function applyFilters() {
+  const q    = document.getElementById('searchInput').value.toLowerCase();
+  const proc = document.getElementById('filterProceso').value;
+  const col  = document.getElementById('filterColor').value;
+  const tipo = document.getElementById('filterTipo').value;
+  filtered = entries.filter(e => {
+    if (q && !e.ref.toLowerCase().includes(q) && !e.color.toLowerCase().includes(q) && !e.descripcion.toLowerCase().includes(q)) return false;
+    if (proc && e.p1 !== proc && e.p2 !== proc) return false;
+    if (col  && e.color !== col)   return false;
+    if (tipo === '1' && e.dos)     return false;
+    if (tipo === '2' && !e.dos)    return false;
+    return true;
+  });
+  currentPage = 1;
+  render();
+}
+
+function render() {
+  const start = (currentPage - 1) * PER_PAGE;
+  const pageItems = filtered.slice(start, start + PER_PAGE);
+  document.getElementById('refTableBody').innerHTML = pageItems.map(e => `
+    <tr>
+      <td class="ps-4 py-3"><span class="badge-ref"><span class="badge-ref-dot"></span>${e.ref}</span></td>
+      <td class="py-3"><span class="badge-color-pill">${e.color}</span></td>
+      <td class="py-3" style="color:var(--ink-2);font-size:.9rem;">${e.descripcion || '—'}</td>
+      <td class="py-3">${procBadge(e.p1)}</td>
+      <td class="py-3">${procBadge(e.p2)}</td>
+      <td class="py-3" style="color:var(--ink-3);font-size:.88rem;">${e.ref2 || '—'}</td>
+    </tr>`).join('');
+  renderPagination();
+}
+
+function buildPageList(cur, total) {
+  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+  const set = new Set([1, total]);
+  for (let p = Math.max(1, cur - 1); p <= Math.min(total, cur + 1); p++) set.add(p);
+  const sorted = [...set].sort((a, b) => a - b);
+  const result = [];
+  let prev = null;
+  sorted.forEach(p => { if (prev !== null && p - prev > 1) result.push('...'); result.push(p); prev = p; });
+  return result;
+}
+
+function renderPagination() {
+  const total      = filtered.length;
+  const totalPages = Math.max(1, Math.ceil(total / PER_PAGE));
+  const start      = total === 0 ? 0 : (currentPage - 1) * PER_PAGE + 1;
+  const end        = Math.min(currentPage * PER_PAGE, total);
+
+  document.getElementById('paginationInfo').innerHTML =
+    total ? `Mostrando <strong>${start}–${end}</strong> de <strong>${total}</strong>` : 'Sin resultados';
+
+  const pages = buildPageList(currentPage, totalPages);
+  document.getElementById('paginationControls').innerHTML = `
+    <li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
+      <a class="page-link" href="#" data-p="${currentPage - 1}">‹</a>
+    </li>
+    ${pages.map(p => p === '...'
+      ? `<li class="page-item disabled"><span class="page-link">…</span></li>`
+      : `<li class="page-item ${p === currentPage ? 'active' : ''}"><a class="page-link" href="#" data-p="${p}">${p}</a></li>`
+    ).join('')}
+    <li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
+      <a class="page-link" href="#" data-p="${currentPage + 1}">›</a>
+    </li>`;
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  populateFilters();
+  filtered = [...entries];
+  render();
+  document.getElementById('searchInput').addEventListener('input', applyFilters);
+  ['filterProceso', 'filterColor', 'filterTipo'].forEach(id =>
+    document.getElementById(id).addEventListener('change', applyFilters));
+  document.getElementById('paginationControls').addEventListener('click', e => {
+    e.preventDefault();
+    const a = e.target.closest('a[data-p]');
+    if (!a) return;
+    const p = +a.dataset.p;
+    const total = Math.max(1, Math.ceil(filtered.length / PER_PAGE));
+    if (p >= 1 && p <= total) { currentPage = p; render(); }
+  });
+});
+</script>
+{% endif %}
 {% endblock %}
