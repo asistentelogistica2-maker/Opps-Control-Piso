@@ -1,11 +1,17 @@
 from pathlib import Path
+import unicodedata
 import openpyxl
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 
 
+def _norm_header(h):
+    """Lowercase, strip, remove accents."""
+    s = str(h).lower().strip()
+    return unicodedata.normalize("NFKD", s).encode("ascii", "ignore").decode("ascii")
+
+
 _HEADER_MAPPING = {
     "fecha": "fecha",
-    "fecha programación": "fecha",
     "fecha programacion": "fecha",
     "referencia": "referencia",
     "color": "color",
@@ -18,7 +24,7 @@ def read_input_excel(filepath):
     ws = wb.active
 
     raw_headers = [cell.value for cell in ws[1]]
-    headers = [str(h).lower().strip() if h else "" for h in raw_headers]
+    headers = [_norm_header(h) if h else "" for h in raw_headers]
 
     rows = []
     for row in ws.iter_rows(min_row=2, values_only=True):

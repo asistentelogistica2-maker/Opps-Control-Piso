@@ -131,9 +131,14 @@ def generate_opps_stock(input_rows, referencias_lookup):
         elif isinstance(fecha_raw, date):
             fecha_dt = fecha_raw
         else:
-            try:
-                fecha_dt = datetime.strptime(str(fecha_raw), "%Y-%m-%d").date()
-            except Exception:
+            fecha_dt = None
+            for fmt in ("%Y-%m-%d", "%d/%m/%Y", "%d-%m-%Y", "%Y/%m/%d", "%Y%m%d"):
+                try:
+                    fecha_dt = datetime.strptime(str(fecha_raw).strip(), fmt).date()
+                    break
+                except Exception:
+                    continue
+            if fecha_dt is None:
                 fecha_dt = date.today()
 
         fecha_str = fecha_dt.strftime("%Y%m%d")
