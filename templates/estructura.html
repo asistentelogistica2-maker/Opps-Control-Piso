@@ -77,13 +77,23 @@
       </a>
     </div>
     <div class="card-body p-4">
-      <form method="POST" action="{{ url_for('importar_referencias') }}" enctype="multipart/form-data">
-        <div class="row g-3 align-items-end">
-          <div class="col-md-6">
-            <label class="form-label fw-semibold">Archivo Excel</label>
-            <input type="file" name="archivo_referencias" class="form-control" accept=".xlsx,.xls" required>
+      <form method="POST" action="{{ url_for('importar_referencias') }}" enctype="multipart/form-data" id="formImportarRef">
+        <div class="upload-area mb-3" id="uploadAreaRef" onclick="document.getElementById('archivoRef').click()">
+          <i class="bi bi-cloud-upload d-block mb-2"></i>
+          <p class="fw-semibold mb-1" id="uploadTextRef">Arrastra tu Excel aquí o haz clic para seleccionar</p>
+          <p class="text-muted small mb-0">Formatos aceptados: .xlsx, .xls</p>
+          <div id="fileNameRef" class="mt-3 d-none">
+            <span class="badge bg-success fs-6 px-3 py-2">
+              <i class="bi bi-file-earmark-excel me-1"></i><span id="fileNameTextRef"></span>
+            </span>
           </div>
-          <div class="col-md-4">
+        </div>
+        <input type="file" id="archivoRef" name="archivo_referencias" accept=".xlsx,.xls" class="d-none" required>
+        <div id="archivoRefError" class="alert alert-danger mb-3 d-none py-2">
+          <i class="bi bi-exclamation-circle me-1"></i>Selecciona un archivo Excel antes de importar.
+        </div>
+        <div class="row g-3 align-items-end">
+          <div class="col-md-10">
             <label class="form-label fw-semibold">Modo</label>
             <select name="modo_referencias" class="form-select">
               <option value="merge">Agregar / actualizar (conserva existentes)</option>
@@ -173,6 +183,44 @@
 {% endblock %}
 
 {% block scripts %}
+<script>
+(function () {
+  const area    = document.getElementById('uploadAreaRef');
+  const input   = document.getElementById('archivoRef');
+  const nameBox = document.getElementById('fileNameRef');
+  const nameSpan= document.getElementById('fileNameTextRef');
+  const text    = document.getElementById('uploadTextRef');
+  const form    = document.getElementById('formImportarRef');
+  const errBox  = document.getElementById('archivoRefError');
+
+  if (!area) return;
+
+  function showFile(f) {
+    if (!f) return;
+    nameSpan.textContent = f.name;
+    nameBox.classList.remove('d-none');
+    text.textContent = 'Archivo listo para importar';
+    errBox.classList.add('d-none');
+  }
+
+  input.addEventListener('change', () => showFile(input.files[0]));
+  area.addEventListener('dragover',  e => { e.preventDefault(); area.classList.add('drag-over'); });
+  area.addEventListener('dragleave', () => area.classList.remove('drag-over'));
+  area.addEventListener('drop', e => {
+    e.preventDefault(); area.classList.remove('drag-over');
+    const f = e.dataTransfer.files[0];
+    if (f) { input.files = e.dataTransfer.files; showFile(f); }
+  });
+
+  form.addEventListener('submit', e => {
+    if (!input.files || input.files.length === 0) {
+      e.preventDefault();
+      errBox.classList.remove('d-none');
+      area.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  });
+})();
+</script>
 {% if referencias %}
 <script>
 const REFERENCIAS = {{ referencias | tojson }};
