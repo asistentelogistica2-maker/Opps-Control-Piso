@@ -120,8 +120,10 @@ def plantilla():
 
 @app.route('/referencias/plantilla')
 def plantilla_referencias():
+    from logic.firebase_db import load_referencias, is_available
+    data = load_referencias() if is_available() else None
     buf = io.BytesIO()
-    create_referencias_template(buf)
+    create_referencias_template(buf, data=data)
     buf.seek(0)
     return send_file(
         buf,

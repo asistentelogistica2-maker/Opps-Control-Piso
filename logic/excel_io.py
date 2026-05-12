@@ -72,8 +72,8 @@ def read_referencias_excel(filepath):
     return referencias, errors
 
 
-def create_referencias_template(target):
-    """Crea el template unificado de referencias con 14 columnas."""
+def create_referencias_template(target, data=None):
+    """Crea el template unificado de referencias con 14 columnas. Si se pasa data, incluye los registros de Firebase."""
     wb = openpyxl.Workbook()
     ws = wb.active
     ws.title = "Referencias"
@@ -85,19 +85,22 @@ def create_referencias_template(target):
         "REF2", "Notas Proceso 1", "Notas Proceso 2",
     ]
     _apply_headers(ws, headers, "1F4E79")
-    sample = [
-        ["PUDT0260", "PUDC0260", "PUERTA DEKO 60x200 cm", "CEDRO SIL", 284,
-         "STD", "UNI", "A", "Arborit", "E", "Empaque", "STOCK",
-         "TODAS VAN A 2 MTS DE ALTURA, PASAR A EMPAQUE",
-         "TODAS VAN A 2 MTS DE ALTURA, PASAR A CEDI"],
-        ["PUDT0260", "PUDC0260", "PUERTA DEKO 60x200 cm", "WENGUE CL", 285,
-         "STD", "UNI", "A", "Arborit", "E", "Empaque", "STOCK",
-         "TODAS VAN A 2 MTS DE ALTURA, PASAR A EMPAQUE",
-         "TODAS VAN A 2 MTS DE ALTURA, PASAR A CEDI"],
-    ]
-    for r, row in enumerate(sample, 2):
-        for col, val in enumerate(row, 1):
-            ws.cell(row=r, column=col, value=val)
+    if data:
+        for r, (_key, d) in enumerate(data.items(), 2):
+            ws.cell(row=r, column=1,  value=d.get("referencia_a", ""))
+            ws.cell(row=r, column=2,  value=d.get("referencia_b", ""))
+            ws.cell(row=r, column=3,  value=d.get("descripcion", ""))
+            ws.cell(row=r, column=4,  value=d.get("color", ""))
+            ws.cell(row=r, column=5,  value=d.get("color_num"))
+            ws.cell(row=r, column=6,  value=d.get("medida", ""))
+            ws.cell(row=r, column=7,  value=d.get("um", ""))
+            ws.cell(row=r, column=8,  value=d.get("ref1", ""))
+            ws.cell(row=r, column=9,  value=d.get("nombre_proceso1", ""))
+            ws.cell(row=r, column=10, value=d.get("ref2_i", ""))
+            ws.cell(row=r, column=11, value=d.get("nombre_proceso2", ""))
+            ws.cell(row=r, column=12, value=d.get("ref2_j", ""))
+            ws.cell(row=r, column=13, value=d.get("notas1", ""))
+            ws.cell(row=r, column=14, value=d.get("notas2", ""))
     col_widths = [14, 14, 28, 14, 10, 10, 8, 12, 18, 12, 18, 10, 35, 35]
     for i, w in enumerate(col_widths, 1):
         ws.column_dimensions[openpyxl.utils.get_column_letter(i)].width = w
