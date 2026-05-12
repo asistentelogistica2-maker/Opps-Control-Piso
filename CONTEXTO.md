@@ -76,7 +76,7 @@ Proyecto Control Piso OPP/
 | GET | `/` | Página principal con formulario |
 | POST | `/generar` | Procesa Excel y genera OPPs |
 | GET | `/descargar/<token>/jumbo` | Descarga `OPP's_jumbo.xlsx` |
-| GET | `/plantilla` | Descarga plantilla de entrada vacía (Fecha Programación/Referencia/Color/Cantidad) |
+| GET | `/plantilla` | Descarga plantilla de entrada vacía (Fecha Programación / Referencia / Color / Cantidad) |
 | GET | `/estructura` | Ver/gestionar Referencias Productivas |
 | GET | `/referencias/plantilla` | Descarga template unificado de 14 columnas |
 | POST | `/referencias/importar` | Importa referencias desde Excel a Firebase |
@@ -195,6 +195,14 @@ Implementado en `templates/base.html` vía CSS custom properties:
 - **Izquierda**: Logo `LOGO_ID.png`
 - **Centro**: Título de página en uppercase gris
 - **Derecha**: Tabs con subrayado amarillo en activo (Inicio · Referencias)
+
+---
+
+## Lectura del Excel de entrada
+
+- El encabezado de la columna de fecha se normaliza (sin tildes, minúsculas) antes de buscarlo en el mapping, por lo que `"Fecha"`, `"Fecha Programación"` y `"Fecha Programacion"` son equivalentes.
+- Si la fecha viene como objeto `datetime`/`date` de openpyxl se usa directamente.
+- Si viene como texto se intenta parsear con estos formatos en orden: `YYYY-MM-DD`, `DD/MM/YYYY`, `DD-MM-YYYY`, `YYYY/MM/DD`, `YYYYMMDD`. Si ninguno funciona se usa `date.today()` como último recurso.
 
 ---
 
