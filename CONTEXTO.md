@@ -76,7 +76,7 @@ Proyecto Control Piso OPP/
 | GET | `/` | Página principal con formulario |
 | POST | `/generar` | Procesa Excel y genera OPPs |
 | GET | `/descargar/<token>/jumbo` | Descarga `OPP's_jumbo.xlsx` |
-| GET | `/plantilla` | Descarga plantilla de entrada (Fecha/Referencia/Color/Cantidad) |
+| GET | `/plantilla` | Descarga plantilla de entrada vacía (Fecha Programación/Referencia/Color/Cantidad) |
 | GET | `/estructura` | Ver/gestionar Referencias Productivas |
 | GET | `/referencias/plantilla` | Descarga template unificado de 14 columnas |
 | POST | `/referencias/importar` | Importa referencias desde Excel a Firebase |
@@ -101,7 +101,7 @@ Proyecto Control Piso OPP/
 |---|---|
 | CONSECUTIVO DCTO | Número OPP (1, 2, 3...) |
 | FECHA AAAAMMDD | Fecha del día en que se genera el archivo |
-| PLANIFICADOR | `71226229` (fijo) |
+| PLANIFICADOR | `71364487` (fijo) |
 | REF1 | Letra Proceso 1 (col H) si es OPP1 / Letra Proceso 2 (col J) si es OPP2 |
 | REF2 | Col J (REF2) — igual en ambas OPPs |
 | REF3 | Vacío |
@@ -122,7 +122,7 @@ Proyecto Control Piso OPP/
 | METODO LISTA | `0001` (texto) |
 | METODO RUTA | `0001` (texto) |
 | MEDIDA REAL | Vacío |
-| BODEGA | Vacío |
+| BODEGA | `80123` si genera 1 OPP / OPP1: `80106`, OPP2: `80123` si genera 2 OPPs |
 
 ---
 
@@ -148,6 +148,9 @@ Nodo `/estructura`. Entradas con `|` en la clave son referencias productivas:
   "notas2": "TODAS VAN A 2 MTS..."
 }
 ```
+
+### Descarga de plantilla con datos actuales
+La ruta `/referencias/plantilla` genera el Excel de 14 columnas **con todos los registros actuales de Firebase**, no vacío. Permite descargar, editar y re-importar.
 
 ### Template Excel unificado (14 columnas)
 | Col | Nombre | Descripción |
@@ -218,9 +221,15 @@ git push
 - [x] Consecutivo OPP inicia desde 1 por generación (ERP asigna número real)
 - [x] UI con design system Inter Doors
 - [x] Selector tipo OPP (Stock activo / RQ y SP próximamente)
-- [x] Plantilla entrada: Fecha · Referencia · Color · Cantidad
+- [x] Plantilla entrada vacía con encabezado "Fecha Programación" · Referencia · Color · Cantidad
 - [x] Referencias Productivas: template 14 cols, importación masiva a Firebase
 - [x] Tabla referencias muestra nombre completo de procesos
+- [x] Planificador actualizado a `71364487`
+- [x] Campo BODEGA: `80123` si 1 OPP; OPP1 `80106` / OPP2 `80123` si 2 OPPs
+- [x] Plantilla de referencias descarga con datos actuales de Firebase
+- [x] Tabla referencias: paginación (8/página), búsqueda y filtros (Proceso / Color / Tipo)
+- [x] Badges de proceso con color por nombre; badge de referencia oscuro con punto amarillo
+- [x] Panel importación referencias con zona drag-and-drop
 - [ ] Implementar lógica RQ
 - [ ] Implementar lógica SP
 - [ ] Historial de OPPs generadas
