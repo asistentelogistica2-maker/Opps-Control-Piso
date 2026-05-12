@@ -5,6 +5,8 @@ from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 
 _HEADER_MAPPING = {
     "fecha": "fecha",
+    "fecha programación": "fecha",
+    "fecha programacion": "fecha",
     "referencia": "referencia",
     "color": "color",
     "cantidad": "cantidad",
