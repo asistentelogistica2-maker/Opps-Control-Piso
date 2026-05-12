@@ -88,7 +88,7 @@ def descargar(token, tipo):
         return redirect(url_for('index'))
 
     if tipo == 'jumbo':
-        filename = "OPP's_jumbo.xlsx"
+        filename = "OPP's.xlsx"
         mimetype = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     elif tipo == 'stickers':
         filename = 'stickers.pdf'
