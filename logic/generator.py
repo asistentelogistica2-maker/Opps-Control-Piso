@@ -157,7 +157,7 @@ def generate_opps_stock(input_rows, referencias_lookup):
             "cantidad": cantidad,
             "fecha_inicio": fecha_str,
             "fecha_fin": fecha_str,
-            "bodega": "80123",
+            "bodega": "80106" if tiene_dos else "80123",
         })
 
         if tiene_dos:
@@ -177,7 +177,7 @@ def generate_opps_stock(input_rows, referencias_lookup):
                 "cantidad": cantidad,
                 "fecha_inicio": fecha_mas2,
                 "fecha_fin": fecha_mas2,
-                "bodega": "80106",
+                "bodega": "80123",
             })
 
     return opp_list, errors
