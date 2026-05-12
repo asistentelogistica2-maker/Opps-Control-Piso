@@ -194,8 +194,9 @@ def guardar_estructura():
 
 @app.route('/estructura/plantilla-masiva')
 def plantilla_estructura():
+    data = load_estructura()
     buf = io.BytesIO()
-    create_estructura_template(buf)
+    create_estructura_template(buf, data=data)
     buf.seek(0)
     return send_file(
         buf,

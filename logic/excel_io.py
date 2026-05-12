@@ -180,40 +180,30 @@ def write_jumbo_excel(opp_list, target):
 
 
 def create_input_template(target):
-    from datetime import date
     wb = openpyxl.Workbook()
     ws = wb.active
     ws.title = "Entrada"
-    headers = ["Fecha", "Referencia", "Color", "Cantidad"]
+    headers = ["Fecha Programación", "Referencia", "Color", "Cantidad"]
     _apply_headers(ws, headers, "2E75B6")
-    sample_rows = [
-        [date.today(), "PUDT0260", "CEDRO SIL", 10],
-        [date.today(), "PUDT0265", "WENGUE CL", 5],
-    ]
-    for r, row in enumerate(sample_rows, 2):
-        for col, val in enumerate(row, 1):
-            ws.cell(row=r, column=col, value=val)
-    for cell in ws["A"][1:]:
-        cell.number_format = "DD/MM/YYYY"
-    for i, w in enumerate([15, 15, 20, 12]):
+    ws.column_dimensions["A"].number_format = "DD/MM/YYYY"
+    for i, w in enumerate([20, 15, 20, 12]):
         ws.column_dimensions[openpyxl.utils.get_column_letter(i + 1)].width = w
     wb.save(target)
 
 
-def create_estructura_template(target):
+def create_estructura_template(target, data=None):
     wb = openpyxl.Workbook()
     ws = wb.active
     ws.title = "Estructura"
     headers = ["Referencia", "Descripción", "Proceso 1", "Proceso 2", "Proceso 3",
                "Proceso 4", "Proceso 5", "Proceso 6", "Proceso 7", "Proceso 8"]
     _apply_headers(ws, headers, "2E75B6")
-    sample_rows = [
-        ["REF001", "Puerta Principal Madera", "Corte", "Lijado", "Pintura", "Terminado", "Empaque", "", "", ""],
-        ["REF002", "Marco Metálico", "Corte Metal", "Soldadura", "Pintura", "Empaque", "", "", "", ""],
-    ]
-    for r, row in enumerate(sample_rows, 2):
-        for col, val in enumerate(row, 1):
-            ws.cell(row=r, column=col, value=val)
+    if data:
+        for r, (ref, info) in enumerate(data.items(), 2):
+            procesos = info.get("procesos", [])
+            row = [ref, info.get("descripcion", "")] + procesos
+            for col, val in enumerate(row, 1):
+                ws.cell(row=r, column=col, value=val)
     col_widths = [15, 28, 18, 18, 18, 18, 18, 18, 18, 18]
     for i, w in enumerate(col_widths, 1):
         ws.column_dimensions[openpyxl.utils.get_column_letter(i)].width = w
