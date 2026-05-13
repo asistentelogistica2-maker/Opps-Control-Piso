@@ -88,7 +88,7 @@ def descargar(token, tipo):
         return redirect(url_for('index'))
 
     if tipo == 'jumbo':
-        filename = "OPP's.xlsx"
+        filename = "Plano OPP Generic.xlsx"
         mimetype = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     elif tipo == 'stickers':
         filename = 'stickers.pdf'
@@ -112,7 +112,7 @@ def plantilla():
     buf.seek(0)
     return send_file(
         buf,
-        download_name='plantilla_entrada_opp.xlsx',
+        download_name='Generar OPP.xlsx',
         as_attachment=True,
         mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     )
