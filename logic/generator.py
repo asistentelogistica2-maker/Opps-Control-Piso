@@ -106,6 +106,14 @@ def load_referencias_stock():
     return {}
 
 
+def _next_day_skip_sunday(d):
+    """Suma 1 día hábil: si el resultado es domingo, avanza al lunes."""
+    result = d + timedelta(days=1)
+    if result.weekday() == 6:  # domingo → lunes
+        result += timedelta(days=1)
+    return result
+
+
 def generate_opps_stock(input_rows, referencias_lookup):
     opp_list = []
     errors = []
@@ -142,7 +150,10 @@ def generate_opps_stock(input_rows, referencias_lookup):
                 fecha_dt = date.today()
 
         fecha_str = fecha_dt.strftime("%Y%m%d")
-        fecha_mas2 = (fecha_dt + timedelta(days=2)).strftime("%Y%m%d")
+
+        # OPP1: inicio = fecha_input, fin = inicio + 1 día (sin domingo)
+        opp1_inicio_dt = fecha_dt
+        opp1_fin_dt    = _next_day_skip_sunday(opp1_inicio_dt)
 
         tiene_dos = bool(ref_data["ref1"]) and bool(ref_data["ref2_i"])
 
@@ -160,12 +171,16 @@ def generate_opps_stock(input_rows, referencias_lookup):
             "ext2": ref_data["medida"],
             "um": ref_data["um"],
             "cantidad": cantidad,
-            "fecha_inicio": fecha_str,
-            "fecha_fin": fecha_str,
+            "fecha_inicio": opp1_inicio_dt.strftime("%Y%m%d"),
+            "fecha_fin":    opp1_fin_dt.strftime("%Y%m%d"),
             "bodega": "80106" if tiene_dos else "80123",
         })
 
         if tiene_dos:
+            # OPP2: inicio = fin OPP1 + 1 día (sin domingo), fin = inicio OPP2 + 1 día (sin domingo)
+            opp2_inicio_dt = _next_day_skip_sunday(opp1_fin_dt)
+            opp2_fin_dt    = _next_day_skip_sunday(opp2_inicio_dt)
+
             counter += 1
             opp_num2 = counter
             opp_list.append({
@@ -180,8 +195,8 @@ def generate_opps_stock(input_rows, referencias_lookup):
                 "ext2": ref_data["medida"],
                 "um": ref_data["um"],
                 "cantidad": cantidad,
-                "fecha_inicio": fecha_mas2,
-                "fecha_fin": fecha_mas2,
+                "fecha_inicio": opp2_inicio_dt.strftime("%Y%m%d"),
+                "fecha_fin":    opp2_fin_dt.strftime("%Y%m%d"),
                 "bodega": "80123",
             })
 
