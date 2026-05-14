@@ -117,9 +117,18 @@ Proyecto Control Piso OPP/
 | EXT2 | Col F (Medida) |
 | U.M | Col G (Unidad de medida) |
 | CANT PLANEADA | Cantidad del input |
-| FECHA INICIO | Fecha del input si OPP1 / Fecha input + 2 días si OPP2 |
-| FECHA TERMINACION | Igual que FECHA INICIO según OPP |
+| FECHA INICIO | OPP1: fecha del input / OPP2: fin OPP1 + 1 día hábil (sin domingo) |
+| FECHA TERMINACION | FECHA INICIO + 1 día hábil (sin domingo) |
 | METODO LISTA | `0001` (texto) |
+
+### Regla de fechas (sin domingo)
+`_next_day_skip_sunday(d)` en `generator.py`: suma 1 día; si el resultado es domingo, suma 1 día más (lunes).
+
+| Fecha input | OPP1 inicio | OPP1 fin | OPP2 inicio | OPP2 fin |
+|---|---|---|---|---|
+| Lunes | Lunes | Martes | Miércoles | Jueves |
+| Viernes | Viernes | Sábado | Lunes | Martes |
+| Sábado | Sábado | Lunes | Martes | Miércoles |
 | METODO RUTA | `0001` (texto) |
 | MEDIDA REAL | Vacío |
 | BODEGA | `80123` si genera 1 OPP / OPP1: `80106`, OPP2: `80123` si genera 2 OPPs |
@@ -171,6 +180,39 @@ La ruta `/referencias/plantilla` genera el Excel de 14 columnas **con todos los 
 | N | Notas Proceso 2 | Instrucciones OPP2 |
 
 > Las claves en Firebase se sanitizan: caracteres `$ # [ ] / .` se reemplazan por `-`.
+
+---
+
+## Seguridad (frontend)
+
+Implementada en los templates HTML. Sin cambios en funcionalidad.
+
+### Content Security Policy (`base.html`)
+Meta tag `Content-Security-Policy` en `<head>`:
+- `script-src`: `'self' 'unsafe-inline' cdn.jsdelivr.net`
+- `style-src`: `'self' 'unsafe-inline' cdn.jsdelivr.net fonts.googleapis.com`
+- `font-src`: `'self' fonts.gstatic.com cdn.jsdelivr.net` (Bootstrap Icons viene de jsdelivr)
+- `img-src`: `'self' data:`
+- `connect-src`: `'self'`
+- `frame-src` / `object-src`: `'none'`
+
+### Rate limiting cliente (`index.html` y `estructura.html`)
+- Máximo **10 envíos por 60 segundos** por sesión (contador en memoria JS)
+- Si se supera, bloquea el botón y muestra mensaje genérico
+- Centralizado en objeto `CONFIG` al inicio de cada script
+
+### Validación de inputs
+- Verifica que se haya seleccionado un archivo antes de enviar
+- Valida extensión: solo `.xlsx` o `.xls`
+- Buscador de referencias trunca a 100 caracteres antes de filtrar
+
+### Escape XSS (`estructura.html`)
+- Función `esc(s)` escapa `& < > " '` antes de insertar en `innerHTML`
+- Aplicada en `render()` (todos los campos de Firebase: ref, color, descripción, REF2) y en `procBadge()` (nombre del proceso)
+
+### Sanitización de errores
+- `try/catch` en todos los submit handlers
+- Mensajes de error genéricos al usuario; nunca stack traces ni detalles internos
 
 ---
 
@@ -238,6 +280,8 @@ git push
 - [x] Tabla referencias: paginación (8/página), búsqueda y filtros (Proceso / Color / Tipo)
 - [x] Badges de proceso con color por nombre; badge de referencia oscuro con punto amarillo
 - [x] Panel importación referencias con zona drag-and-drop
+- [x] Fechas OPP: FECHA_FIN = FECHA_INICIO + 1 día hábil (sin domingo); OPP2 encadenada desde fin OPP1
+- [x] Seguridad frontend: CSP, rate limiting 10/min, validación extensión, escape XSS en innerHTML, try/catch con mensajes genéricos
 - [ ] Implementar lógica RQ
 - [ ] Implementar lógica SP
 - [ ] Historial de OPPs generadas
