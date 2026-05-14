@@ -93,40 +93,97 @@
 
 {% block scripts %}
 <script>
-  const area    = document.getElementById('uploadArea');
-  const input   = document.getElementById('archivo');
-  const nameBox = document.getElementById('fileName');
-  const nameSpan= document.getElementById('fileNameText');
-  const text    = document.getElementById('uploadText');
+// ─── 1. CONFIG ────────────────────────────────────────────────────────────────
+const CONFIG = {
+  ALLOWED_EXT:    ['.xlsx', '.xls'],
+  RATE_LIMIT:     10,
+  RATE_WINDOW_MS: 60_000,
+};
 
-  input.addEventListener('change', () => showFile(input.files[0]));
+// ─── 3. SEGURIDAD ─────────────────────────────────────────────────────────────
+function esc(s) {
+  return String(s ?? '')
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
 
-  area.addEventListener('dragover', e => { e.preventDefault(); area.classList.add('drag-over'); });
-  area.addEventListener('dragleave', () => area.classList.remove('drag-over'));
-  area.addEventListener('drop', e => {
-    e.preventDefault(); area.classList.remove('drag-over');
-    const f = e.dataTransfer.files[0];
-    if (f) { input.files = e.dataTransfer.files; showFile(f); }
-  });
+const rateLimiter = (() => {
+  let count = 0, windowStart = Date.now();
+  return {
+    check() {
+      const now = Date.now();
+      if (now - windowStart > CONFIG.RATE_WINDOW_MS) { count = 0; windowStart = now; }
+      if (count >= CONFIG.RATE_LIMIT) return false;
+      count++;
+      return true;
+    }
+  };
+})();
 
-  function showFile(f) {
-    if (!f) return;
-    nameSpan.textContent = f.name;
-    nameBox.classList.remove('d-none');
-    text.textContent = 'Archivo listo para procesar';
-    document.getElementById('archivoError').classList.add('d-none');
-  }
+function isValidFile(f) {
+  if (!f) return false;
+  const name = f.name.toLowerCase();
+  return CONFIG.ALLOWED_EXT.some(ext => name.endsWith(ext));
+}
 
-  document.getElementById('formGenerar').addEventListener('submit', function(e) {
+// ─── 4. UI ────────────────────────────────────────────────────────────────────
+const area     = document.getElementById('uploadArea');
+const input    = document.getElementById('archivo');
+const nameBox  = document.getElementById('fileName');
+const nameSpan = document.getElementById('fileNameText');
+const text     = document.getElementById('uploadText');
+const errBox   = document.getElementById('archivoError');
+
+function showFile(f) {
+  if (!f) return;
+  nameSpan.textContent = f.name;
+  nameBox.classList.remove('d-none');
+  text.textContent = 'Archivo listo para procesar';
+  errBox.classList.add('d-none');
+}
+
+function showError(msg) {
+  errBox.textContent = msg;
+  errBox.classList.remove('d-none');
+  area.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+// ─── 5. NAVEGACIÓN — drag & drop ─────────────────────────────────────────────
+input.addEventListener('change', () => showFile(input.files[0]));
+area.addEventListener('dragover',  e => { e.preventDefault(); area.classList.add('drag-over'); });
+area.addEventListener('dragleave', () => area.classList.remove('drag-over'));
+area.addEventListener('drop', e => {
+  e.preventDefault();
+  area.classList.remove('drag-over');
+  const f = e.dataTransfer.files[0];
+  if (f) { input.files = e.dataTransfer.files; showFile(f); }
+});
+
+// ─── 6. LÓGICA — envío de formulario ─────────────────────────────────────────
+document.getElementById('formGenerar').addEventListener('submit', function(e) {
+  try {
     if (!input.files || input.files.length === 0) {
       e.preventDefault();
-      document.getElementById('archivoError').classList.remove('d-none');
-      area.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      showError('Selecciona un archivo Excel antes de continuar.');
+      return;
+    }
+    if (!isValidFile(input.files[0])) {
+      e.preventDefault();
+      showError('El archivo debe ser .xlsx o .xls.');
+      return;
+    }
+    if (!rateLimiter.check()) {
+      e.preventDefault();
+      showError('Demasiadas solicitudes. Espera un momento e intenta de nuevo.');
       return;
     }
     const btn = document.getElementById('btnGenerar');
     btn.disabled = true;
     btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Procesando...';
-  });
+  } catch (_) {
+    e.preventDefault();
+    showError('No se pudo completar la consulta. Intenta de nuevo.');
+  }
+});
 </script>
 {% endblock %}
