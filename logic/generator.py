@@ -1,4 +1,5 @@
 import json
+import math
 import os
 from datetime import date, datetime, timedelta
 from pathlib import Path
@@ -118,16 +119,21 @@ def _next_day_skip_sunday(d):
     return result
 
 
-def _split_quantity(total, max_qty):
-    """Divide total en lotes de máximo max_qty. Sin límite si max_qty es None o 0."""
+def _split_quantity_proportional(total, max_qty, batch_size=1):
+    """Divide total en OPPs lo más parejas posible, en múltiplos de batch_size."""
     if not max_qty or max_qty <= 0:
         return [total]
-    chunks = []
-    remaining = total
-    while remaining > 0:
-        chunks.append(min(remaining, max_qty))
-        remaining -= min(remaining, max_qty)
-    return chunks
+    batch         = batch_size if (batch_size and batch_size > 0) else 1
+    total_batches = total // batch
+    max_batches   = max_qty // batch
+    if max_batches <= 0:
+        return [total]
+    num_opps = math.ceil(total_batches / max_batches)
+    if num_opps <= 1:
+        return [total]
+    base  = total_batches // num_opps
+    extra = total_batches % num_opps
+    return [(base + (1 if i < extra else 0)) * batch for i in range(num_opps)]
 
 
 def generate_opps_stock(input_rows, referencias_lookup):
@@ -178,11 +184,12 @@ def generate_opps_stock(input_rows, referencias_lookup):
         max_p2   = ref_data.get("max_p2")
         max_p1   = int(max_p1) if max_p1 else None
         max_p2   = int(max_p2) if max_p2 else None
+        multiplo = int(ref_data.get("multiplo") or 1)
 
         ref_item_p1 = ref_data["referencia_b"] if tiene_dos else ref_data["referencia_a"]
         bodega_p1   = "80106" if tiene_dos else "80123"
 
-        for qty in _split_quantity(cantidad, max_p1):
+        for qty in _split_quantity_proportional(cantidad, max_p1, multiplo):
             counter += 1
             opp_list.append({
                 "opp":            counter,
@@ -206,7 +213,7 @@ def generate_opps_stock(input_rows, referencias_lookup):
             opp2_inicio_dt = _next_day_skip_sunday(opp1_fin_dt)
             opp2_fin_dt    = _next_day_skip_sunday(opp2_inicio_dt)
 
-            for qty in _split_quantity(cantidad, max_p2):
+            for qty in _split_quantity_proportional(cantidad, max_p2, multiplo):
                 counter += 1
                 opp_list.append({
                     "opp":            counter,
