@@ -84,6 +84,7 @@ def read_referencias_excel(filepath):
             "notas2":       str(_rv(row, 13)).strip() if _rv(row, 13) else "",
         }
 
+    cantidades = {}
     if "Cantidades Referencias" in wb.sheetnames:
         ws_cant = wb["Cantidades Referencias"]
         for row in ws_cant.iter_rows(min_row=2, values_only=True):
@@ -92,16 +93,17 @@ def read_referencias_excel(filepath):
             if not ref_a or not color:
                 continue
             fb_key = f"{_safe_fb_key(ref_a)}|{_safe_fb_key(color)}"
-            if fb_key not in referencias:
-                continue
+            entry = {}
             if _rv(row, 2) is not None:
-                referencias[fb_key]["max_p1"] = int(_rv(row, 2))
+                entry["max_p1"] = int(_rv(row, 2))
             if _rv(row, 3) is not None:
-                referencias[fb_key]["max_p2"] = int(_rv(row, 3))
+                entry["max_p2"] = int(_rv(row, 3))
             if _rv(row, 4) is not None:
-                referencias[fb_key]["multiplo"] = int(_rv(row, 4))
+                entry["multiplo"] = int(_rv(row, 4))
+            if entry:
+                cantidades[fb_key] = entry
 
-    return referencias, errors
+    return referencias, cantidades, errors
 
 
 def create_referencias_template(target, data=None):

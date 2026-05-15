@@ -145,17 +145,22 @@ def importar_referencias():
 
     try:
         stream = io.BytesIO(archivo.read())
-        nuevas, errors = read_referencias_excel(stream)
+        nuevas, cantidades, errors = read_referencias_excel(stream)
 
         if not nuevas:
             flash('El archivo no contiene referencias válidas.', 'warning')
             return redirect(url_for('estructura'))
 
+        from logic.firebase_db import save_cantidades
         save_referencias(nuevas, modo)
+        if cantidades:
+            save_cantidades(cantidades, modo)
         global _referencias_stock
         _referencias_stock = None
 
         msg = f'{len(nuevas)} referencia(s) importada(s) correctamente.'
+        if cantidades:
+            msg += f' {len(cantidades)} límite(s) de cantidad guardado(s).'
         if errors:
             msg += f' {len(errors)} fila(s) omitida(s).'
         flash(msg, 'success')

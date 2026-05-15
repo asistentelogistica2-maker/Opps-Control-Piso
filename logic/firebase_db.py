@@ -64,3 +64,18 @@ def save_referencias(nuevas, modo='merge'):
     rtdb.reference('/estructura').set(sin_refs)
 
 
+def load_cantidades():
+    _init()
+    return rtdb.reference('/cantidades').get() or {}
+
+
+def save_cantidades(nuevas, modo='merge'):
+    _init()
+    if modo == 'reemplazar':
+        rtdb.reference('/cantidades').set(nuevas)
+    else:
+        existing = rtdb.reference('/cantidades').get() or {}
+        existing.update(nuevas)
+        rtdb.reference('/cantidades').set(existing)
+
+

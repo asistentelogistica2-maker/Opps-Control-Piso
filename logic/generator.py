@@ -97,11 +97,15 @@ def _safe_key(s):
 
 def load_referencias_stock():
     if _use_firebase():
-        raw = _fdb.load_referencias()
+        raw        = _fdb.load_referencias()
+        cantidades = _fdb.load_cantidades()
         lookup = {}
         for fb_key, data in raw.items():
             ref, color = fb_key.split('|', 1)
-            lookup[(_safe_key(ref), _safe_key(color))] = data
+            entry = dict(data)
+            if fb_key in cantidades:
+                entry.update(cantidades[fb_key])
+            lookup[(_safe_key(ref), _safe_key(color))] = entry
         return lookup
     return {}
 
