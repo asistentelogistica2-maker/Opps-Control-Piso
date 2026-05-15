@@ -58,7 +58,7 @@ def read_referencias_excel(filepath):
     """Lee el template unificado de referencias (14 cols) y retorna dict para Firebase.
     Si existe la hoja 'Cantidades Referencias', también lee max_p1, max_p2 y multiplo."""
     wb = openpyxl.load_workbook(filepath, data_only=True)
-    ws = wb.active
+    ws = wb["Referencias"] if "Referencias" in wb.sheetnames else wb.active
     referencias = {}
     errors = []
     for row_idx, row in enumerate(ws.iter_rows(min_row=2, values_only=True), 2):
