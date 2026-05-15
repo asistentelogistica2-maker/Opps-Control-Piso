@@ -116,10 +116,13 @@ Proyecto Control Piso OPP/
 | EXT1 | Col E (Color #) |
 | EXT2 | Col F (Medida) |
 | U.M | Col G (Unidad de medida) |
-| CANT PLANEADA | Cantidad del input |
+| CANT PLANEADA | Cantidad del input (puede dividirse en varias OPPs si supera el límite) |
 | FECHA INICIO | OPP1: fecha del input / OPP2: fin OPP1 + 1 día hábil (sin domingo) |
 | FECHA TERMINACION | FECHA INICIO + 1 día hábil (sin domingo) |
 | METODO LISTA | `0001` (texto) |
+| METODO RUTA | `0001` (texto) |
+| MEDIDA REAL | Vacío |
+| BODEGA | `80123` si genera 1 OPP / OPP1: `80106`, OPP2: `80123` si genera 2 OPPs |
 
 ### Regla de fechas (sin domingo)
 `_next_day_skip_sunday(d)` en `generator.py`: suma 1 día; si el resultado es domingo, suma 1 día más (lunes).
@@ -129,16 +132,26 @@ Proyecto Control Piso OPP/
 | Lunes | Lunes | Martes | Miércoles | Jueves |
 | Viernes | Viernes | Sábado | Lunes | Martes |
 | Sábado | Sábado | Lunes | Martes | Miércoles |
-| METODO RUTA | `0001` (texto) |
-| MEDIDA REAL | Vacío |
-| BODEGA | `80123` si genera 1 OPP / OPP1: `80106`, OPP2: `80123` si genera 2 OPPs |
+
+### Límites de cantidad por proceso
+Si una referencia tiene `max_p1`, `max_p2` y `multiplo` definidos en Firebase (`/cantidades`), la cantidad se divide en múltiples OPPs del **mismo proceso** (fechas en paralelo). La distribución es **proporcional**: se reparte lo más parejo posible con diferencia máxima de 1 paquete (`multiplo`).
+
+Función `_split_quantity_proportional(total, max_qty, batch_size)` en `generator.py`:
+
+| Total | Max P1 | Paquete | OPPs generadas |
+|---|---|---|---|
+| 222 | 185 | 37 | 111 + 111 |
+| 259 | 185 | 37 | 148 + 111 |
+| 370 | 185 | 37 | 185 + 185 |
+| 407 | 185 | 37 | 148 + 148 + 111 |
 
 ---
 
 ## Referencias Productivas (Firebase)
 
-### Estructura en Firebase
-Nodo `/estructura`. Entradas con `|` en la clave son referencias productivas:
+### Estructura en Firebase — dos nodos separados
+
+**Nodo `/estructura`** — datos de referencia (entradas con `|` en la clave):
 ```
 "PUDT0260|CEDRO SIL": {
   "referencia_a": "PUDT0260",
@@ -157,6 +170,17 @@ Nodo `/estructura`. Entradas con `|` en la clave son referencias productivas:
   "notas2": "TODAS VAN A 2 MTS..."
 }
 ```
+
+**Nodo `/cantidades`** — límites de cantidad por proceso (misma clave `REFERENCIA|COLOR`):
+```
+"PUDT0260|CEDRO SIL": {
+  "max_p1": 185,
+  "max_p2": 74,
+  "multiplo": 37
+}
+```
+
+Al generar OPPs, `load_referencias_stock()` fusiona ambos nodos en memoria. En Firebase siempre quedan separados.
 
 ### Descarga de plantilla con datos actuales
 La ruta `/referencias/plantilla` genera el Excel de 14 columnas **con todos los registros actuales de Firebase**, no vacío. Permite descargar, editar y re-importar.
@@ -282,6 +306,9 @@ git push
 - [x] Panel importación referencias con zona drag-and-drop
 - [x] Fechas OPP: FECHA_FIN = FECHA_INICIO + 1 día hábil (sin domingo); OPP2 encadenada desde fin OPP1
 - [x] Seguridad frontend: CSP, rate limiting 10/min, validación extensión, escape XSS en innerHTML, try/catch con mensajes genéricos
+- [x] Límites de cantidad por proceso: max_p1, max_p2, multiplo en Firebase /cantidades; distribución proporcional entre OPPs (diferencia máx. 1 paquete)
+- [x] Firebase separado en dos nodos: /estructura (referencias) y /cantidades (límites por proceso)
+- [x] Plantilla referencias: hoja adicional "Cantidades Referencias" (Referencia / Color / Max P1 / Max P2 / Multiplo)
 - [ ] Implementar lógica RQ
 - [ ] Implementar lógica SP
 - [ ] Historial de OPPs generadas
