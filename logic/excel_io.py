@@ -50,7 +50,8 @@ def _safe_fb_key(s):
 
 
 def read_referencias_excel(filepath):
-    """Lee el template unificado de referencias (14 cols) y retorna dict para Firebase."""
+    """Lee el template unificado de referencias (14 cols) y retorna dict para Firebase.
+    Si existe la hoja 'Cantidades Referencias', también lee max_p1, max_p2 y multiplo."""
     wb = openpyxl.load_workbook(filepath, data_only=True)
     ws = wb.active
     referencias = {}
@@ -77,11 +78,29 @@ def read_referencias_excel(filepath):
             "notas1":       str(row[12]).strip() if row[12] else "",
             "notas2":       str(row[13]).strip() if row[13] else "",
         }
+
+    if "Cantidades Referencias" in wb.sheetnames:
+        ws_cant = wb["Cantidades Referencias"]
+        for row in ws_cant.iter_rows(min_row=2, values_only=True):
+            ref_a = str(row[0]).strip() if row[0] else ""
+            color = str(row[1]).strip() if row[1] else ""
+            if not ref_a or not color:
+                continue
+            fb_key = f"{_safe_fb_key(ref_a)}|{_safe_fb_key(color)}"
+            if fb_key not in referencias:
+                continue
+            if row[2] is not None:
+                referencias[fb_key]["max_p1"] = int(row[2])
+            if row[3] is not None:
+                referencias[fb_key]["max_p2"] = int(row[3])
+            if row[4] is not None:
+                referencias[fb_key]["multiplo"] = int(row[4])
+
     return referencias, errors
 
 
 def create_referencias_template(target, data=None):
-    """Crea el template unificado de referencias con 14 columnas. Si se pasa data, incluye los registros de Firebase."""
+    """Crea el template de referencias con hoja Referencias (14 cols) + hoja Cantidades Referencias."""
     wb = openpyxl.Workbook()
     ws = wb.active
     ws.title = "Referencias"
@@ -112,6 +131,27 @@ def create_referencias_template(target, data=None):
     col_widths = [14, 14, 28, 14, 10, 10, 8, 12, 18, 12, 18, 10, 35, 35]
     for i, w in enumerate(col_widths, 1):
         ws.column_dimensions[openpyxl.utils.get_column_letter(i)].width = w
+
+    # Hoja: Cantidades Referencias
+    ws_cant = wb.create_sheet("Cantidades Referencias")
+    cant_headers = ["Referencia", "Color", "Max Proceso 1", "Max Proceso 2", "Multiplo"]
+    _apply_headers(ws_cant, cant_headers, "375623")
+    if data:
+        r = 2
+        for _key, d in data.items():
+            ref_a = d.get("referencia_a", "")
+            color = d.get("color", "")
+            if not ref_a or not color:
+                continue
+            ws_cant.cell(row=r, column=1, value=ref_a)
+            ws_cant.cell(row=r, column=2, value=color)
+            ws_cant.cell(row=r, column=3, value=d.get("max_p1") or "")
+            ws_cant.cell(row=r, column=4, value=d.get("max_p2") or "")
+            ws_cant.cell(row=r, column=5, value=d.get("multiplo") or "")
+            r += 1
+    for i, w in enumerate([16, 16, 16, 16, 12], 1):
+        ws_cant.column_dimensions[openpyxl.utils.get_column_letter(i)].width = w
+
     wb.save(target)
 
 
