@@ -75,14 +75,14 @@ def read_referencias_excel(filepath):
             "color_num":    _rv(row, 4),
             "medida":       str(_rv(row,  5)).strip() if _rv(row,  5) else "",
             "um":           str(_rv(row,  6)).strip() if _rv(row,  6) else "",
-            "ref1":            str(_rv(row,  7)).strip() if _rv(row,  7) else "",
-            "nombre_proceso1": str(_rv(row,  8)).strip() if _rv(row,  8) else "",
-            "ref2_i":          str(_rv(row,  9)).strip() if _rv(row,  9) else "",
-            "nombre_proceso2": str(_rv(row, 10)).strip() if _rv(row, 10) else "",
-            "ref2_j":          str(_rv(row, 11)).strip() if _rv(row, 11) else "",
-            "notas1":       str(_rv(row, 12)).strip() if _rv(row, 12) else "",
-            "notas2":       str(_rv(row, 13)).strip() if _rv(row, 13) else "",
-            "um_p2":        str(_rv(row, 14)).strip() if _rv(row, 14) else "",
+            "um_p2":        str(_rv(row,  7)).strip() if _rv(row,  7) else "",
+            "ref1":            str(_rv(row,  8)).strip() if _rv(row,  8) else "",
+            "nombre_proceso1": str(_rv(row,  9)).strip() if _rv(row,  9) else "",
+            "ref2_i":          str(_rv(row, 10)).strip() if _rv(row, 10) else "",
+            "nombre_proceso2": str(_rv(row, 11)).strip() if _rv(row, 11) else "",
+            "ref2_j":          str(_rv(row, 12)).strip() if _rv(row, 12) else "",
+            "notas1":       str(_rv(row, 13)).strip() if _rv(row, 13) else "",
+            "notas2":       str(_rv(row, 14)).strip() if _rv(row, 14) else "",
         }
 
     cantidades = {}
@@ -114,11 +114,10 @@ def create_referencias_template(target, data=None):
     ws.title = "Referencias"
     headers = [
         "Referencia", "Referencia PRD", "Descripción", "Color", "Color #",
-        "Medida", "U.M",
+        "Medida", "U.M", "U.M Proceso 2",
         "Proceso 1", "Nombre Proceso 1",
         "Proceso 2", "Nombre Proceso 2",
         "REF2", "Notas Proceso 1", "Notas Proceso 2",
-        "U.M Proceso 2",
     ]
     _apply_headers(ws, headers, "1F4E79")
     if data:
@@ -130,15 +129,15 @@ def create_referencias_template(target, data=None):
             ws.cell(row=r, column=5,  value=d.get("color_num"))
             ws.cell(row=r, column=6,  value=d.get("medida", ""))
             ws.cell(row=r, column=7,  value=d.get("um", ""))
-            ws.cell(row=r, column=8,  value=d.get("ref1", ""))
-            ws.cell(row=r, column=9,  value=d.get("nombre_proceso1", ""))
-            ws.cell(row=r, column=10, value=d.get("ref2_i", ""))
-            ws.cell(row=r, column=11, value=d.get("nombre_proceso2", ""))
-            ws.cell(row=r, column=12, value=d.get("ref2_j", ""))
-            ws.cell(row=r, column=13, value=d.get("notas1", ""))
-            ws.cell(row=r, column=14, value=d.get("notas2", ""))
-            ws.cell(row=r, column=15, value=d.get("um_p2", ""))
-    col_widths = [14, 14, 28, 14, 10, 10, 8, 12, 18, 12, 18, 10, 35, 35, 12]
+            ws.cell(row=r, column=8,  value=d.get("um_p2", ""))
+            ws.cell(row=r, column=9,  value=d.get("ref1", ""))
+            ws.cell(row=r, column=10, value=d.get("nombre_proceso1", ""))
+            ws.cell(row=r, column=11, value=d.get("ref2_i", ""))
+            ws.cell(row=r, column=12, value=d.get("nombre_proceso2", ""))
+            ws.cell(row=r, column=13, value=d.get("ref2_j", ""))
+            ws.cell(row=r, column=14, value=d.get("notas1", ""))
+            ws.cell(row=r, column=15, value=d.get("notas2", ""))
+    col_widths = [14, 14, 28, 14, 10, 10, 8, 12, 12, 18, 12, 18, 10, 35, 35]
     for i, w in enumerate(col_widths, 1):
         ws.column_dimensions[openpyxl.utils.get_column_letter(i)].width = w
 
