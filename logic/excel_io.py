@@ -10,6 +10,11 @@ def _norm_header(h):
     return unicodedata.normalize("NFKD", s).encode("ascii", "ignore").decode("ascii")
 
 
+def _rv(row, i):
+    """Acceso seguro a tupla de fila: devuelve None si el índice no existe."""
+    return row[i] if i < len(row) else None
+
+
 _HEADER_MAPPING = {
     "fecha": "fecha",
     "fecha programacion": "fecha",
@@ -57,44 +62,44 @@ def read_referencias_excel(filepath):
     referencias = {}
     errors = []
     for row_idx, row in enumerate(ws.iter_rows(min_row=2, values_only=True), 2):
-        ref_a = str(row[0]).strip() if row[0] else ""
-        color = str(row[3]).strip() if row[3] else ""
+        ref_a = str(_rv(row, 0)).strip() if _rv(row, 0) else ""
+        color = str(_rv(row, 3)).strip() if _rv(row, 3) else ""
         if not ref_a or not color:
             continue
         fb_key = f"{_safe_fb_key(ref_a)}|{_safe_fb_key(color)}"
         referencias[fb_key] = {
             "referencia_a": ref_a,
-            "referencia_b": str(row[1]).strip() if row[1] else "",
-            "descripcion":  str(row[2]).strip() if row[2] else "",
+            "referencia_b": str(_rv(row,  1)).strip() if _rv(row,  1) else "",
+            "descripcion":  str(_rv(row,  2)).strip() if _rv(row,  2) else "",
             "color":        color,
-            "color_num":    row[4],
-            "medida":       str(row[5]).strip() if row[5] else "",
-            "um":           str(row[6]).strip() if row[6] else "",
-            "ref1":            str(row[7]).strip() if row[7] else "",
-            "nombre_proceso1": str(row[8]).strip() if row[8] else "",
-            "ref2_i":          str(row[9]).strip() if row[9] else "",
-            "nombre_proceso2": str(row[10]).strip() if row[10] else "",
-            "ref2_j":          str(row[11]).strip() if row[11] else "",
-            "notas1":       str(row[12]).strip() if row[12] else "",
-            "notas2":       str(row[13]).strip() if row[13] else "",
+            "color_num":    _rv(row, 4),
+            "medida":       str(_rv(row,  5)).strip() if _rv(row,  5) else "",
+            "um":           str(_rv(row,  6)).strip() if _rv(row,  6) else "",
+            "ref1":            str(_rv(row,  7)).strip() if _rv(row,  7) else "",
+            "nombre_proceso1": str(_rv(row,  8)).strip() if _rv(row,  8) else "",
+            "ref2_i":          str(_rv(row,  9)).strip() if _rv(row,  9) else "",
+            "nombre_proceso2": str(_rv(row, 10)).strip() if _rv(row, 10) else "",
+            "ref2_j":          str(_rv(row, 11)).strip() if _rv(row, 11) else "",
+            "notas1":       str(_rv(row, 12)).strip() if _rv(row, 12) else "",
+            "notas2":       str(_rv(row, 13)).strip() if _rv(row, 13) else "",
         }
 
     if "Cantidades Referencias" in wb.sheetnames:
         ws_cant = wb["Cantidades Referencias"]
         for row in ws_cant.iter_rows(min_row=2, values_only=True):
-            ref_a = str(row[0]).strip() if row[0] else ""
-            color = str(row[1]).strip() if row[1] else ""
+            ref_a = str(_rv(row, 0)).strip() if _rv(row, 0) else ""
+            color = str(_rv(row, 1)).strip() if _rv(row, 1) else ""
             if not ref_a or not color:
                 continue
             fb_key = f"{_safe_fb_key(ref_a)}|{_safe_fb_key(color)}"
             if fb_key not in referencias:
                 continue
-            if row[2] is not None:
-                referencias[fb_key]["max_p1"] = int(row[2])
-            if row[3] is not None:
-                referencias[fb_key]["max_p2"] = int(row[3])
-            if row[4] is not None:
-                referencias[fb_key]["multiplo"] = int(row[4])
+            if _rv(row, 2) is not None:
+                referencias[fb_key]["max_p1"] = int(_rv(row, 2))
+            if _rv(row, 3) is not None:
+                referencias[fb_key]["max_p2"] = int(_rv(row, 3))
+            if _rv(row, 4) is not None:
+                referencias[fb_key]["multiplo"] = int(_rv(row, 4))
 
     return referencias, errors
 
