@@ -82,6 +82,7 @@ def read_referencias_excel(filepath):
             "ref2_j":          str(_rv(row, 11)).strip() if _rv(row, 11) else "",
             "notas1":       str(_rv(row, 12)).strip() if _rv(row, 12) else "",
             "notas2":       str(_rv(row, 13)).strip() if _rv(row, 13) else "",
+            "um_p2":        str(_rv(row, 14)).strip() if _rv(row, 14) else "",
         }
 
     cantidades = {}
@@ -117,6 +118,7 @@ def create_referencias_template(target, data=None):
         "Proceso 1", "Nombre Proceso 1",
         "Proceso 2", "Nombre Proceso 2",
         "REF2", "Notas Proceso 1", "Notas Proceso 2",
+        "U.M Proceso 2",
     ]
     _apply_headers(ws, headers, "1F4E79")
     if data:
@@ -135,7 +137,8 @@ def create_referencias_template(target, data=None):
             ws.cell(row=r, column=12, value=d.get("ref2_j", ""))
             ws.cell(row=r, column=13, value=d.get("notas1", ""))
             ws.cell(row=r, column=14, value=d.get("notas2", ""))
-    col_widths = [14, 14, 28, 14, 10, 10, 8, 12, 18, 12, 18, 10, 35, 35]
+            ws.cell(row=r, column=15, value=d.get("um_p2", ""))
+    col_widths = [14, 14, 28, 14, 10, 10, 8, 12, 18, 12, 18, 10, 35, 35, 12]
     for i, w in enumerate(col_widths, 1):
         ws.column_dimensions[openpyxl.utils.get_column_letter(i)].width = w
 

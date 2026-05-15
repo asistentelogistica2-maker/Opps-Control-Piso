@@ -225,7 +225,7 @@ def generate_opps_stock(input_rows, referencias_lookup):
                     "referencia_item": ref_data["referencia_a"],
                     "ext1":           ref_data["color_num"],
                     "ext2":           ref_data["medida"],
-                    "um":             ref_data["um"],
+                    "um":             ref_data.get("um_p2") or ref_data.get("um", ""),
                     "cantidad":       qty,
                     "fecha_inicio":   opp2_inicio_dt.strftime("%Y%m%d"),
                     "fecha_fin":      opp2_fin_dt.strftime("%Y%m%d"),
