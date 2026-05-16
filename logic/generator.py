@@ -4,6 +4,8 @@ import os
 from datetime import date, datetime, timedelta
 from pathlib import Path
 
+import holidays as _holidays_lib
+
 BASE_DIR = Path(__file__).parent.parent
 ESTRUCTURA_FILE = BASE_DIR / "config" / "estructura.json"
 
@@ -111,10 +113,11 @@ def load_referencias_stock():
     return {}
 
 
-def _next_day_skip_sunday(d):
-    """Suma 1 día hábil: si el resultado es domingo, avanza al lunes."""
+def _next_working_day(d):
+    """Suma 1 día y avanza hasta el próximo día hábil (excluye domingos y festivos Colombia)."""
+    col_holidays = _holidays_lib.Colombia(years=[d.year, d.year + 1])
     result = d + timedelta(days=1)
-    if result.weekday() == 6:  # domingo → lunes
+    while result.weekday() == 6 or result in col_holidays:
         result += timedelta(days=1)
     return result
 
@@ -175,7 +178,7 @@ def generate_opps_stock(input_rows, referencias_lookup):
 
         # Fechas proceso 1: todas las OPPs del proceso van en paralelo (mismas fechas)
         opp1_inicio_dt = fecha_dt
-        opp1_fin_dt    = _next_day_skip_sunday(opp1_inicio_dt)
+        opp1_fin_dt    = _next_working_day(opp1_inicio_dt)
 
         tiene_dos = bool(ref_data["ref1"]) and bool(ref_data["ref2_i"])
 
@@ -210,8 +213,8 @@ def generate_opps_stock(input_rows, referencias_lookup):
 
         if tiene_dos:
             # Fechas proceso 2: encadenadas desde el fin del proceso 1
-            opp2_inicio_dt = _next_day_skip_sunday(opp1_fin_dt)
-            opp2_fin_dt    = _next_day_skip_sunday(opp2_inicio_dt)
+            opp2_inicio_dt = _next_working_day(opp1_fin_dt)
+            opp2_fin_dt    = _next_working_day(opp2_inicio_dt)
 
             for qty in _split_quantity_proportional(cantidad, max_p2, multiplo):
                 counter += 1

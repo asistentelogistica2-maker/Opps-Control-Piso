@@ -12,6 +12,7 @@ packaging==26.2
 python-dotenv==1.2.2
 Werkzeug==3.1.8
 firebase-admin==6.5.0
+holidays==0.96
 reportlab==4.0.9
 qrcode==7.4.2
 pillow==10.4.0
